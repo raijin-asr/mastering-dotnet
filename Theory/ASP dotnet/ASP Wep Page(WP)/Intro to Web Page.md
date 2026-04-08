@@ -136,3 +136,88 @@ WebMail.Password = "your-password";
 WebMail.From = "your-name-here@example.com";
 }
 ```
+
+### 4. Folders:
+
+<img width="494" height="113" alt="image" src="https://github.com/user-attachments/assets/4a45ffa8-dd4c-4b5c-89eb-485d2522973c" />
+
+- The "Account" folder contains logon and security files
+- The "App_Data" folder contains databases and data files
+- The "Images" folder contains images
+- The "Scripts" folder contains browser scripts
+- The "Shared" folder contains common files (like layout and style files)
+
+- The virtual name of a web picture might be "Images/pic31.jpg".
+- But the physical name is "C:\Johnny\Documents\MyWebSites\Demo\Images\pic31.jpg"
+
+#### 4.1 URLs and Paths
+- URLs are used to access files from the web: https://www.w3schools.com/html/html5_intro.asp
+
+- The URL corresponds to a physical file on a server: C:\MyWebSites\w3schools\html\html5_intro.asp
+
+- A virtual path is shorthand to represent physical paths. If you use virtual paths, you can move your pages to a different domain (or server) without having to update the paths.
+
+- URL	https://www.w3schools.com/html/html5_intro.asp
+- Server name	w3schools
+-Virtual path	/html/html5_intro.asp
+- Physical path	C:\MyWebSites\w3schools\html\html5_intro.asp
+
+- ASP.NET has 3 tools for working with folder paths: the ~ operator, the Server.MapPath method, and the Href method.
+
+  #### 4.2 The ~ Operator
+- To specify the virtual root in programming code, use the ~ operator.
+
+- If you use the ~ operator, instead of a path, you can move your website to a different folder or location without changing any code:
+```
+var myImagesFolder = "~/images";
+var myStyleSheet = "~/styles/StyleSheet.css";
+```
+
+#### 4.3 The Server.MapPath Method
+- The Server.MapPath method converts a virtual path (/default.cshtml) to a physical path that the server can understand (C:\Johnny\MyWebSited\Demo\default.cshtml).
+
+You will use this method when you need to open data files located on the server (data files can only be accessed with a full physical path):
+```
+var pathName = "~/dataFile.txt";
+var fileName = Server.MapPath(pathName);
+```
+
+#### 4.4 The Href Method
+- The Href method converts a path used in the code to a path that the browser can understand (the browser cannot understand the ~ operator).
+
+- You use the Href method to create paths to resources like image files, and CSS files.
+
+- You will often use this method in HTML <a>, <img>, and <link> elements:
+```
+@{var myStyleSheet = "~/Shared/Site.css";}
+
+<!-- This creates a link to the CSS file. -->
+<link rel="stylesheet" type="text/css" href="@Href(myStyleSheet)" />
+
+<!-- Same as : -->
+<link rel="stylesheet" type="text/css" href="/Shared/Site.css" />
+```
+- The Href method is a method of the WebPage Object.
+
+### 5. Global Pages
+- AppStart and PageStart are global pages.
+
+#### 5.1 _AppStart (Before web startup)
+- Most server side code are written inside individual web pages. For example, if a web page contains an input form, the web page typically contains server code for reading the data.
+- However, by creating a page named _AppStart in the root of your site, you can have startup code executed before the site starts. If this page exists, ASP.NET runs it the first time any page in the site is requested.
+- Typical use for _AppStart is startup code and initialization of global values like counters and global names.
+- Note 1: _AppStart should have the same file extension as your web pages, like: _AppStart.cshtml. 
+- Note 2: _AppStart has an underscore prefix. Because of this, the files cannot be browsed directly.
+
+#### 5.2 _PageStart (Before Every Page)
+- Just like _AppStart runs before your site starts, you can write code that runs before any page in each folder.
+- For each folder in your web, you can add a file named _PageStart.
+- Typical use for _PageStart is setting the layout page for all pages in a folder, or checking that a user is logged in before running a page.
+
+<img width="630" height="316" alt="image" src="https://github.com/user-attachments/assets/91e77b00-d176-491a-86b3-1db37a1e7ace" />
+
+- When a request comes in, ASP.NET checks whether _AppStart exists. If so, and this is the first request to the site, _AppStart runs.
+
+- Then ASP.NET checks whether _PageStart exists. If so, _PageStart runs, before the requested page.
+
+- If you include a call to RunPage() inside _PageStart you specify where you want the requested page to run. If not, the _PageStart runs before the requested page.
