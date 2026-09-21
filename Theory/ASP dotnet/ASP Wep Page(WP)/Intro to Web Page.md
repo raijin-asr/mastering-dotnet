@@ -217,7 +217,72 @@ var fileName = Server.MapPath(pathName);
 <img width="630" height="316" alt="image" src="https://github.com/user-attachments/assets/91e77b00-d176-491a-86b3-1db37a1e7ace" />
 
 - When a request comes in, ASP.NET checks whether _AppStart exists. If so, and this is the first request to the site, _AppStart runs.
-
 - Then ASP.NET checks whether _PageStart exists. If so, _PageStart runs, before the requested page.
-
 - If you include a call to RunPage() inside _PageStart you specify where you want the requested page to run. If not, the _PageStart runs before the requested page.
+
+### 6. HTML Forms
+- A form is a section of an HTML document where you put input controls (text boxes, check boxes, radio buttons, and pull-down lists).
+```
+<html>
+<body> 
+@{
+if (IsPost) { 
+string companyname = Request["CompanyName"]; 
+string contactname = Request["ContactName"]; 
+<p>You entered: <br />
+Company Name: @companyname <br />
+Contact Name: @contactname </p>
+}
+else
+{
+<form method="post" action="">
+Company Name:<br />
+<input type="text" name="CompanyName" value="" /><br />
+Contact Name:<br />
+<input type="text" name="ContactName" value="" /><br /><br />
+<input type="submit" value="Submit" class="submit" />
+</form>
+}
+} 
+</body> 
+</html>
+```
+
+#### 6.1 Displaying Images
+- Razor code to display image as given:
+  ```<img src="images/Photo1.jpg" alt="Sample" />```
+- Example below shows how to display a selected picture which the user selects from a drop-down list:  
+```
+@{
+var imagePath="";
+if (Request["Choice"] != null)
+   {imagePath="images/" + Request["Choice"];}
+}
+<!DOCTYPE html>
+<html>
+<body>
+<h1>Display Images</h1>
+<form method="post" action="">
+I want to see:
+<select name="Choice">
+  <option value="Photo1.jpg">Photo 1</option>
+  <option value="Photo2.jpg">Photo 2</option>
+  <option value="Photo3.jpg">Photo 3</option>
+</select>
+<input type="submit" value="Submit" />
+@if (imagePath != "")
+{
+<p>
+<img src="@imagePath" alt="Sample" />
+</p>
+} 
+</form>
+</body>
+</html>
+```
+- Explaining above code:
+-- The server creates a variable called imagePath.
+-- The HTML page has a drop-down list (a <select> element) named Choice. It lets the user select a friendly name (like Photo 1), and passes a file name (like Photo1.jpg) when the page is submitted to the web server.
+-- The Razor code reads the value of Choice by Request["Choice"]. If it has a value the code constructs a path to the image images/Photo1.jpg, and stores it in the variable imagePath.
+-- In the HTML page there is an <img> element to display the image. The src attribute is set to the value of the imagePath variable when the page displays.
+-- The <img> element is in an if block to prevent trying to display an image with no name (like the first time the page is displayed).
