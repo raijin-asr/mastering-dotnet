@@ -272,7 +272,7 @@ I want to see:
 <input type="submit" value="Submit" />
 @if (imagePath != "")
 {
-<p>
+<p>    
 <img src="@imagePath" alt="Sample" />
 </p>
 } 
@@ -280,9 +280,68 @@ I want to see:
 </body>
 </html>
 ```
+
 - Explaining above code:
--- The server creates a variable called imagePath.
--- The HTML page has a drop-down list (a <select> element) named Choice. It lets the user select a friendly name (like Photo 1), and passes a file name (like Photo1.jpg) when the page is submitted to the web server.
--- The Razor code reads the value of Choice by Request["Choice"]. If it has a value the code constructs a path to the image images/Photo1.jpg, and stores it in the variable imagePath.
--- In the HTML page there is an <img> element to display the image. The src attribute is set to the value of the imagePath variable when the page displays.
--- The <img> element is in an if block to prevent trying to display an image with no name (like the first time the page is displayed).
+  1. The server creates a variable called `imagePath`.
+  2. The HTML page has a drop-down list (a `<select>` element) named `Choice`. It lets the user select a friendly name (like Photo 1), and passes a file name (like `Photo1.jpg`) when the page is submitted to the web server.
+  3. The Razor code reads the value of `Choice` by `Request["Choice"]`. If it has a value, the code constructs a path to the image `images/Photo1.jpg`, and stores it in the variable `imagePath`.
+  4. In the HTML page, there is an `<img>` element to display the image. The `src` attribute is set to the value of the `imagePath` variable when the page displays.
+  5. The `<img>` element is in an `if` block to prevent trying to display an image with no name (like the first time the page is displayed).
+
+---
+
+### 7. Web Page Objects
+
+- Web Page is about objects. 
+- **Example:** `@RenderPage("header.cshtml")`, `@RenderBody()` are page object methods, and `IsPost` in `if(IsPost)` and `Request` in `if(Request["Choice"] != null)` are page objects.
+
+#### 7.1 Some Page Object Methods
+
+| Method | Description |
+| :--- | :--- |
+| `href` | Builds a URL using the specified parameters |
+| `RenderBody()` | Renders the portion of a content page that is not within a named section (In layout pages) |
+| `RenderPage(page)` | Renders the content of one page within another page |
+| `RenderSection(section)` | Renders the content of a named section (In layout pages) |
+| `Write(object)` | Writes the object as an HTML-encoded string |
+| `WriteLiteral` | Writes an object without HTML-encoding it first. |
+
+#### 7.2 Some Page Object Properties
+
+| Property | Description |
+| :--- | :--- |
+| `IsPost` | Returns true if the HTTP data transfer method used by the client is a POST request |
+| `Layout` | Gets or sets the path of a layout page |
+| `Page` | Provides property-like access to data shared between pages and layout pages |
+| `Request` | Gets the `HttpRequest` object for the current HTTP request |
+| `Server` | Gets the `HttpServerUtility` object that provides web-page processing methods |
+
+#### 7.3 Page Property of the Page Object
+
+- It provides property-like access to data shared between pages and layout pages.
+- You can use (add) your own properties to the `Page` property: `Page.Title`, `Page.Version`, `Page.anythingyoulike`.
+- The pages property is very helpful. For instance, it makes it possible to set the page title in content files and use it in the layout file:
+
+```cshtml
+
+@{
+Layout="~/Shared/Layout.cshtml";
+Page.Title="Home Page"
+}
+
+<h1>Welcome guys</h1>
+<p>My dotnet journey</p>
+```
+
+```Layout.cshtml
+<!DOCTYPE html>
+<html>
+<head>
+<title>@Page.Title</title>
+</head>
+<body>
+@RenderBody()
+</body>
+</html>
+```
+
