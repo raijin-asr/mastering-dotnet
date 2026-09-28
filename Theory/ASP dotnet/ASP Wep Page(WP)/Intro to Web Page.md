@@ -344,4 +344,75 @@ Page.Title="Home Page"
 </body>
 </html>
 ```
+### 8. ASP.NET Web Pages Files
+#### 8.1 Working with Text Files:
+- Text file is also called flat files and stores data in formats such as .txt, .xml. and .csv.
 
+#### 8.2 Display Data from a Text File
+- Use 'File.ReadAllLines' to open file and read all lines into an array. 
+- 'Server.MapPath' to read exact file path.
+- Example:
+```
+@{
+var dataFile = Server.MapPath("~/App_Date/File.txt"); 
+Array userData = File.ReadAllLines(dataFile);
+}
+
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>Reading Data from a File</h1>
+@foreach (string dataLine in userData)
+{
+  foreach (string dataItem in dataLine.Split(','))
+  {@dataItem <text>&nbsp;</text>}
+  <br />
+}
+</body>
+</html>
+```
+
+
+### 9. WP Databases
+#### 9.1 Displaying Data from Database
+- Connect to an existing database or create new from scratch. 
+- Following is Products.cshtml file to read data from Product table from Shop123 database.
+```
+@{
+var db = Database.Open("Shop123"); 
+var selectQueryString = "SELECT * FROM Product ORDER BY Name"; 
+}
+<html> 
+<body> 
+<h1>Small Bakery Products</h1> 
+<table> 
+<tr>
+<th>Id</th> 
+<th>Product</th> 
+<th>Description</th> 
+<th>Price</th> 
+</tr>
+@foreach(var row in db.Query(selectQueryString))
+{
+<tr> 
+<td>@row.Id</td> 
+<td>@row.Name</td> 
+<td>@row.Description</td> 
+<td align="right">@row.Price</td> 
+</tr> 
+}
+</table> 
+</body> 
+</html>
+```
+
+- Database.Open(name) connects to database by first searching application's App_Data folder database with matching name parameter without file name extension else if no file found it looks for connection string in web.config file.
+
+#### 9.2 Database Object Reference
+- Database.Executes(SqlStatement,[,paremteres]): Executes Sql statement such as INSERT, DELETE or UPDATE and returns a count of affected records. Parameters is optional.
+- Database.GetLastInsertId(): Returns identity column from most recently inserted row.
+- Database.Open(filename or connectStringName): Opens database file or database specified in connection string of web.config file.
+- Database.OpenConnectionString(connectionString): Opens database using connection string.
+- Database.Query(sqlstatement[,parametets]) : this is similar to Executes but returns results as a collection.
+- Database.QueryValue(SQLstatement [,parameters]): executes sql statement and return a single value.
