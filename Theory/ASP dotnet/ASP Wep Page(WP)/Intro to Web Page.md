@@ -416,3 +416,107 @@ var selectQueryString = "SELECT * FROM Product ORDER BY Name";
 - Database.OpenConnectionString(connectionString): Opens database using connection string.
 - Database.Query(sqlstatement[,parametets]) : this is similar to Executes but returns results as a collection.
 - Database.QueryValue(SQLstatement [,parameters]): executes sql statement and return a single value.
+
+### 10. Asp.NET Helpers
+- Components that can be accessed by single lines of Razor code.
+- Either use built-in helpers or create own helpers using Razor syntax stored as .cshtml files.
+- Some razor helpers are WebGrid, Chart, Web Image, WebMail.
+- WebGrid helper simplifies way to display data by setting up an HTML table automatically, supports different formatting options, paging through data as first, next, previous, last and sorting data through column headings.
+- Chart helper to display different charts with many formatting options and labels from arrays, database or from files.
+- WebMail helper provides functions for sending email messages using SMTP.
+- WebImage helper provides functionality to manage image in web page with features such as flip, rotate, resize, watermark.
+- There are third party helpers too for email, database, multimedia, social network, navigation and web security such as Analytics(Google), Bing, Crypto, Facebook, FileUpload, GamerCard, Gravatar Object Reference, Json, LinkShare, ModelState, ObjectInfo, ReCAPTCHA, serverInfo, Twitter, Video, WebCache, WebImage.
+
+#### 10.1 WebGrid Helper
+- Example:
+```
+@{ 
+var db = Database.Open("SmallBakery") ; 
+var selectQueryString = "SELECT * FROM Product ORDER BY Name"; 
+var data = db.Query(selectQueryString); 
+var grid = new WebGrid(data); 
+}
+<html> 
+<head> 
+<title>Displaying Data Using the WebGrid Helper</title> 
+</head> 
+<body> 
+<h1>Small Bakery Products</h1> 
+<div id="grid"> 
+@grid.GetHtml()
+</div> 
+</body> 
+</html>
+```
+
+- WebGrid(data)	: Creates a new WebGrid object using data from a query.
+- WebGrid.GetHtml(): Renders markup to display data in an HTML table.
+- WebGrid.Pager(): Renders a pager for the WebGrid object.
+
+#### 10.2. Chart Helper
+- Create standard charts like area charts, bar charts, column charts, line charts, and pie charts, along with more specialized charts like stock charts
+- Example to display a chart from an array of values:
+```
+@{ 
+var myChart = new Chart(width: 600, height: 400) 
+   .AddTitle("Employees") 
+   .AddSeries(chartType: "column",
+      xValue: new[] {  "Peter", "Andrew", "Julie", "Mary", "Dave" }, 
+      yValues: new[] { "2", "6", "4", "5", "3" }) 
+   .Write();
+}
+```
+- new Chart creates a new chart object and sets its width and height
+- the AddTitle method specifies the chart title
+- the AddSeries method adds data to the chart
+- the chartType parameter defines the type of chart
+- the xValue parameter defines x-axis names
+- the yValues parameter defines the y-axis values
+- the Write() method displays the chart 
+
+- Example to display chart from database data:
+```
+@{ 
+var db = Database.Open("SmallBakery"); 
+var dbdata = db.Query("SELECT Name, Price FROM Product"); 
+var myChart = new Chart(width: 600, height: 400) 
+   .AddTitle("Product Sales") 
+   .DataBindTable(dataSource: dbdata, xField: "Name")
+   .Write();
+}
+```
+
+- the DataBindTable method binds the data source to the chart and easy to use.
+
+- Example using AddSeries as alternative to DataBindtable as its more flexible to specify chart and data.
+```
+@{ 
+var db = Database.Open("SmallBakery"); 
+var dbdata = db.Query("SELECT Name, Price FROM Product"); 
+var myChart = new Chart(width: 600, height: 400) 
+   .AddTitle("Product Sales") 
+   .AddSeries(chartType:"Pie",
+      xValue: dbdata, xField: "Name",
+      yValues: dbdata, yFields: "Price")
+   .Write();
+}
+```
+
+- Example to show chart from XML data:
+```
+@using System.Data;
+
+@{
+var dataSet = new DataSet();
+dataSet.ReadXmlSchema(Server.MapPath("data.xsd"));
+dataSet.ReadXml(Server.MapPath("data.xml"));
+var dataView = new DataView(dataSet.Tables[0]);
+
+var myChart = new Chart(width: 600, height: 400)
+   .AddTitle("Sales Per Employee")
+   .AddSeries("Default", chartType: "Pie",
+      xValue: dataView, xField: "Name",
+      yValues: dataView, yFields: "Sales")
+   .Write();}
+}
+```
