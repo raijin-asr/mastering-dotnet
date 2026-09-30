@@ -520,3 +520,147 @@ var myChart = new Chart(width: 600, height: 400)
    .Write();}
 }
 ```
+
+#### 10.2. WebMail Helper
+- Easily send emails from web application using SMTP(Simple Mail Transfer Protocol).
+- To send an email, first put following code to initiate Webmail helper and put its properties to AppStart page.
+- _AppStart.cshtml:
+```
+@{
+WebSecurity.InitializeDatabaseConnection("Users", "UserProfile", "UserId", "Email", true);  //this can be optional
+WebMail.SmtpServer = "smtp.example.com";
+WebMail.SmtpPort = 25;
+WebMail.EnableSsl = false;
+WebMail.UserName = "support@example.com";
+WebMail.Password = "password-goes-here";
+WebMail.From = "john@example.com";
+}
+```
+
+- Explaining Properties:
+- ______
+- SmtpServer: The name the SMTP server that will be used to send the emails.
+- SmtpPort: The port the server will use to send SMTP transactions (emails).
+- EnableSsl: True, if the server should use SSL (Secure Socket Layer) encryption.
+- UserName: The name of the SMTP email account used to send the email.
+- Password: The password of the SMTP email account.
+- From: The email to appear in the from address (often the same as UserName).
+- _____
+- Then secondly, create input page with name like Email_Form.cshml to collect info, and submit to new email send page.
+-  Email_Form.cshml:
+```
+<!DOCTYPE html>
+<html>
+<body>
+<h1>Request for Assistance</h1>
+
+<form method="post" action="EmailSend.cshtml">
+<label>Username:</label>
+<input type="text" name="customerEmail" />
+<label>Details about the problem:</label>
+<textarea name="customerRequest" cols="45" rows="4"></textarea>
+<p><input type="submit" value="Submit" /></p>
+</form>
+
+</body>
+</html>
+```
+- Then finally, create email send page using Send method of webmail.
+- SendEmailPage.cshtml:
+```
+@{ // Read input
+var customerEmail = Request["customerEmail"];
+var customerRequest = Request["customerRequest"];
+try
+{
+// Send email
+WebMail.Send(to:"someone@example.com", subject: "Help request from - " + customerEmail, body: customerRequest );
+}
+catch (Exception ex )
+{
+<text>@ex</text>
+}
+}
+```
+
+- Class of WebMail is System.Web.Helpers.WebMail.
+- NameSpace of WebMail is System.Web.Helpers.
+- Assembly is System.Web.Helpers.dll.
+
+
+#### 10. 4. WebSecurity Object
+- Provides security and authentication to crate user accounts, login, logout users, reset or changes passwords.
+- ___________
+- Properties:
+- CurrentUserId: Gets the ID for the current user
+- CurrentUserName: Gets the name of the current user
+- HasUserId: Returns true if the current has a user ID
+- IsAuthenticated: Returns true if the current user is logged in
+
+- _______________
+- Methods:
+- ChangePassword(): Changes the password for a user
+- ConfirmAccount(): Confirms an account using a confirmation token
+- CreateAccount(): Creates a new user account
+- CreateUserAndAccount(): Creates a new user account
+- GeneratePasswordResetToken(): Generates a token that can be sent to as user by email
+- GetCreateDate(): Gets the time the specified membership was created
+- GetPasswordChangeDate(): Gets the date and time when password was changed
+- GetUserId(): Gets a user ID from a user name
+- InitializeDatabaseConnection(): Initializes the WebSecurity system (database)
+- IsConfirmed(): Checks if a user is confirmed
+- IsCurrentUser(): Checks if the current user matches a user name
+- Login(): Logs the user in by setting a token in the cookie
+- Logout(): Logs the user out by removing the token cookie
+- RequireAuthenticatedUser(): Exits the page if the user is not an authenticated user
+- RequireRoles(): Exits the page if the user is not a part of the specified roles
+- RequireUser(): Exits the page if the user is not the specified user
+- ResetPassword(): Changes a user's password using a token
+- UserExists(): Checks if a given user exists
+- _____
+- To use websecurity object, need to create or initialize websecurity database.
+- Put following code inside page named _AppStart.cshtml:
+```
+@{
+WebSecurity.InitializeDatabaseConnection("UsersDB", "TBL_UserProfile", "UserId", "Email", true);
+}
+```
+
+- "UsersDB" is the name of the WebSecurity database (Users.sdf).
+- "TBL_UserProfile" is the name of the database table that contains the user profile information.
+- "UserId" is the name of the column that contains the user IDs (primary key).
+- "Email" is the name of the column that contains user names
+- The last parameter true is a boolean value indicating that the user profile and membership tables should be created automatically if they don't exist, otherwise false.
+- Although true indicates automatic creation of the database tables, the database itself will not be created automatically. It must exist.
+
+- UserProfile table might have UserId, Email column.
+- The Membership table will contain membership information about when the user was created and if (and when) the membership was confirmed.( Columns such as UserId, CreateDate, ConfirmationToken, IsConfirmed, LastPasswordFailure, Password, PasswordChange)
+
+- You might get errors using the WebSecurity object, if your site is not configured to use the ASP.NET Web Pages membership system SimpleMembership.
+
+- This can occur if a hosting provider's server is configured differently than your local server. To fix this, add the following element to the site's Web.config file:
+```
+<appSettings>
+<add key="enableSimpleMembership" value="true" />
+</appSettings>
+```
+
+ ### 11. ASP.NET Web Pages - Publishing the Website
+- Use latest version of asp.net web page(here is 4.0 or 4.5).
+- Copy web folders of website from developed computer to application folder of hosting server computer.
+- then put same all dll files to bin folder on remote hosting computer.
+```
+Microsoft.Web.Infrastructure.dll
+NuGet.Core.dll
+System.Web.Helpers.dll
+System.Web.Razor.dll
+System.Web.WebPages.Administration.dll
+System.Web.WebPages.Deployment.dll
+System.Web.WebPages.dll
+System.Web.WebPages.Razor.dll
+WebMatrix.Data.dll
+WebMatrix.WebData
+```
+- Do not copy data of test environment. just copy empty .sdf file from your development computer to server after deleing everything in database if have to copy an sql database to avoid overwrite production data.
+
+
