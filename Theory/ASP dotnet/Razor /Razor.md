@@ -120,5 +120,114 @@ DateTime today = DateTime.Today;
 - AsBool() / IsBool(): Converts a string to a Boolean. Eg: myString="True"; myBool=myString.AsBool();
 - ToString(): Converts any data type to a string. Eg: myInt=1234; myString=myInt.ToString();
 
+### 3. C# Loops and Arrays
+
+- For Loops
+```
+<html>
+<body>
+@for(var i = 10; i < 21; i++)
+    {<p>Line @i</p>}
+</body>
+</html>
+```
+
+- For Each Loops used with array.
+```
+<html>
+<body>
+<ul>
+@foreach (var x in Request.ServerVariables)
+    {<li>@x</li>}
+</ul>
+</body>
+</html>
+```
+
+- While Loops
+```
+<html>
+<body>
+@{
+var i = 0;
+while (i < 5)
+    {
+    i += 1;
+    <p>Line @i</p>
+    }
+}
+</body>
+</html>
+```
+
+- An array is useful when you want to store similar variables but don't want to create a separate variable for each of them.
+```
+@{
+string[] members = {"Jani", "Hege", "Kai", "Jim"};
+int i = Array.IndexOf(members, "Kai")+1;
+int len = members.Length;
+string x = members[2-1];
+}
+<html>
+<body>
+<h3>Members</h3>
+@foreach (var person in members)
+{
+<p>@person</p>
+}
+<p>The number of names in Members are @len</p>
+<p>The person at position 2 is @x</p>
+<p>Kai is now in position @i</p>
+</body>
+</html>
+```
+
+### 4. C# Conditions
+- Execute code based on conditions.
+- If, If Else, If Else If, Switch
+```
+@{var price=20;}
+<html>
+<body>
+@if (price>30)
+  {
+  <p>The price is too high.</p>
+  }
+else
+  {
+  <p>The price is OK.</p>
+  }
+</body>
+</html>
+```
+- Switch:
+```
+@{
+var weekday=DateTime.Now.DayOfWeek;
+var day=weekday.ToString();
+var message="";
+}
+<html>
+<body>
+@switch(day)
+{
+case "Monday":
+    message="This is the first weekday.";
+    break;
+case "Thursday":
+    message="Only one day before weekend.";
+    break;
+case "Friday":
+    message="Tomorrow is weekend!";
+    break;
+default:
+    message="Today is " + day;
+    break;
+}
+<p>@message</p>
+</body>
+</html>
+```
+
 
 
