@@ -184,7 +184,7 @@ string x = members[2-1];
 
 ### 4. C# Conditions
 - Execute code based on conditions.
-- If, If Else, If Else If, Switch
+- If, If Else, Else If
 ```
 @{var price=20;}
 <html>
