@@ -1,6 +1,6 @@
 # 🚀 .NET: The Road to Mastery
 
-Welcome to my professional growth repository! After working with **ASP.NET for 10 months** and currently specializing in **WPF/XAML**, I am embarking on a structured journey to master the entire .NET ecosystem. 
+Welcome to my professional growth repository! I am embarking on a structured journey to master the entire .NET ecosystem. 
 
 My approach is **Theory First (Basic to Advanced)**, followed by practical implementation and **daily commits** to document my progress.
 
