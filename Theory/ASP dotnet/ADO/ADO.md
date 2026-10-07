@@ -303,7 +303,7 @@ conn.close
 %>
 ```
 
-### 7. Update Records
+### 8. Update Records
 ```
 <html>
 <body>
@@ -357,7 +357,7 @@ conn.close
 </html>
 ```
 
-### 8. Delete Records:
+### 9. Delete Records:
 ```
 <h2>Delete Record</h2>
 <%
@@ -399,9 +399,9 @@ conn.close
 %>
 ```
 
-### 9. ADO Object:
+### 10. ADO Object:
 
-#### 9.1. Command Object
+#### 10.1. Command Object
 - It is used to execute single query against a database to perform actions like creating, adding, retrieving, deleting or updating records.
 - Retrieved data  returned as Recordset object can be manipulated by properties, collections, methods and events of Recordset object.
 - its major feature is to use stored queries and procedures with parameters.
@@ -417,10 +417,12 @@ set objCommand=Server.CreateObject("ADODB.command")
 - e. Name: Sets or returns the name of a Command object
 - f. Prepared	Sets or returns a Boolean value that, if set to True, indicates that the command should save a prepared version of the query before the first execution
 - g. State: Returns a value that describes if the Command object is open, closed, connecting, executing or retrieving data
+---
 
 - Collections:
 - a. Parameters: Contains all the Parameter objects of a Command Object
 - b. Properties: Contains all the Property objects of a Command Object
+---
 
 - Methods:
 - a. Cancel: Cancels an execution of a method
