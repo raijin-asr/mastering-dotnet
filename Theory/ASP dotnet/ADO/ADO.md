@@ -429,6 +429,297 @@ set objCommand=Server.CreateObject("ADODB.command")
 - b. CreateParameter: Creates a new Parameter object
 - c. Execute: Executes the query, SQL statement or procedure in the CommandText property
 
+### 10.2. ADO Connection Object
+- Used to create an open connection to a data source to access and manipulate database.
+
+- ProgID:
+```
+set objConnection=Server.CreateObject("ADODB.connection")
+
+```
+
+- Properties:
+- a. Attributes: Sets or returns the attributes of a Connection object
+- b. CommandTimeout: Sets or returns the number of seconds to wait while attempting to execute a command
+- c. ConnectionString: Sets or returns the details used to create a connection to a data source
+- f. ConnectionTimeout: Sets or returns the number of seconds to wait for a connection to open
+- e. CursorLocation	Sets or returns the location of the cursor service
+- f. DefaultDatabase	Sets or returns the default database name
+- g. IsolationLevel	Sets or returns the isolation level
+- h. Mode	Sets or returns the provider access permission
+- i. Provider	Sets or returns the provider name
+- j. State	Returns a value describing if the connection is open or closed
+- k. Version	Returns the ADO version number
+---
+
+- Methods:
+- a. BeginTrans: Begins a new transaction
+- b. Cancel: Cancels an execution
+- c. Close: Closes a connection
+- d. CommitTrans: Saves any changes and ends the current transaction
+- e. Execute: Executes a query, statement, procedure or provider specific text
+- f. Open: Opens a connection
+- g. OpenSchema: Returns schema information from the provider about the data source
+- h. RollbackTrans: Cancels any changes in the current transaction and ends the transaction
+---
+- Events:
+- a. BeginTransComplete: Triggered after the BeginTrans operation
+- b. CommitTransComplete: Triggered after the CommitTrans operation
+- c. ConnectComplete: Triggered after a connection starts
+- d. Disconnect: Triggered after a connection ends
+- e. ExecuteComplete:Triggered after a command has finished executing
+- f. InfoMessage: Triggered if a warning occurs during a ConnectionEvent operation
+- g. RollbackTransComplete: Triggered after the RollbackTrans operation
+- h. WillConnect: Triggered before a connection starts
+- i. WillExecute: Triggered before a command is executed
+---
+- Collections:
+- a. Errors: Contains all the Error objects of the Connection object
+- b. Properties: Contains all the Property objects of the Connection object
+
+### 10.3. ADO Error Object
+- Data access errors generation during a single operation.
+- Syntax: ```objErr.property```
+- Propertties:
+- a. Description: Returns an error description
+- b. HelpContext: Returns the context ID of a topic in the Microsoft Windows help system
+- c. HelpFile: Returns the full path of the help file in the Microsoft Windows help system
+- d. NativeError: Returns an error code from the provider or the data source
+- e. Number: Returns a unique number that identifies the error
+- f. Source: Returns the name of the object or application that generated the error
+- g. SQLState: Returns a 5-character SQL error code
+
+```
+for each objErr in objConn.Errors
+  response.write("<p>")
+  response.write("Description: ")
+  response.write(objErr.Description & "<br>")
+  response.write("Help context: ")
+  response.write(objErr.HelpContext & "<br>")
+  response.write("Help file: ")
+  response.write(objErr.HelpFile & "<br>")
+  response.write("Native error: ")
+  response.write(objErr.NativeError & "<br>")
+  response.write("Error number: ")
+  response.write(objErr.Number & "<br>")
+  response.write("Error source: ")
+  response.write(objErr.Source & "<br>")
+  response.write("SQL state: ")
+  response.write(objErr.SQLState & "<br>")
+  response.write("</p>")
+next
+%>
+```
+
+### 10.4. ADO Field Object:
+- info about a column of Recordset object.
+-  ProgID: ``` set objField=Server.CreateObject("ADODB.field")```
+---
+- Properties: 
+- a. ActualSize: Returns the actual length of a field's value
+- b. Attributes: Sets or returns the attributes of a Field object
+- c. DefinedSize: Returns the defined size of a field
+- d. Name: Sets or returns the name of a Field object
+- e. NumericScale: Sets or returns the number of decimal places allowed for numeric values in a Field object
+- f. OriginalValue: Returns the original value of a field
+- g. Precision: Sets or returns the maximum number of digits allowed when representing numeric values in a Field object
+- h. Status: Returns the status of a Field object
+- i.Type: Sets or returns the type of a Field object
+- j. UnderlyingValue: Returns the current value of a field
+- k. Value: Sets or returns the value of a Field object
+---
+- Methods: 
+- a. AppendChunk: Appends long binary or character data to a Field object
+- b. GetChunk: Returns all or a part of the contents of a large text or binary data Field object
+
+
+### 10.5. ADO Parameter Object
+- Info about a single parameter used in query or stored procedure. (eg. @ID, @Name)
+- Used to create a parameterized commands.
+- Four types of parameters: input parameters, output parameters, input/output parameters and return parameters.
+- Syntax: 
+``` 
+objectname.property
+objectname.method
+```
+---
+- Properties:
+- a. Attributes: Sets or returns the attributes of a Parameter object
+- b. Direction: Sets or returns how a parameter is passed to or from a procedure
+- c. Name: Sets or returns the name of a Parameter object
+- d. NumericScale: Sets or returns the number of digits stored to the right side of the decimal point for a numeric value of a Parameter object
+- e. Precision: Sets or returns the maximum number of digits allowed when representing numeric values in a Parameter
+- f. Size: Sets or returns the maximum size in bytes or characters of a value in a Parameter object
+- g. Type: Sets or returns the type of a Parameter object
+- h. Value: Sets or returns the value of a Parameter object
+---
+- Methods:
+- a. AppendChunk: Appends long binary or character data to a Parameter object
+- b. Delete: Deletes an object from the Parameters Collection
+
+
+### 10.6. ADO Property Object
+- Contains dynamic characteristics of an ADO object defined by provider.
+- ProgID: ``` set objProperty=Server.CreateObject("ADODB.property")```
+
+
+-Properties:
+- a. Attributes: Returns the attributes of a Property object
+- b. Name: Sets or returns the name of a Property object
+- c. Type: Returns the type of a Property object
+- d. Value: Sets or returns the value of a Property object
+
+### 10.7. ADO Record Object
+- Used to hold a row in a Recordset, a directory or a file from a file system.
+- Only structured databases could be accessed by ADO in versions prior 2.5. 
+- Syntax: 
+```
+objectname.property
+objectname.method
+```
+
+--- 
+- Properties:
+- a. ActiveConnection: Sets or returns which Connection object a Record object belongs to
+- b. Mode: Sets or returns the permission for modifying data in a Record object
+- c. ParentURL: Returns the absolute URL of the parent Record
+- d. RecordType: Returns the type of a Record object
+- e. Source	: Sets or returns the src parameter of the Open method of a Record object
+- f. State: Returns the status of a Record object
+
+---
+- Methods:
+- a.Cancel: Cancels an execution of a CopyRecord, DeleteRecord, MoveRecord, or Open call
+- b. Close: Closes a Record object
+- c. CopyRecord: Copies a file or directory to another location
+- d. DeleteRecord: Deletes a file or directory
+- e. GetChildren: Returns a Recordset object where each row represents the files in the directory
+- f. MoveRecord: Moves a file or a directory to another location
+- g. Open: Opens an existing Record object or creates a new file or directory
+
+
+### 10.8 ADO Recordset Object
+- set of records from a database table, consists of records and columns(fields).
+- When you first open a Recordset, the current record pointer will point to the first record and the BOF and EOF properties are False. If there are no records, the BOF and EOF property are True.
+- Supports two types of updating: Immediate updating where all changes are written immediately to the database once you call the Update method and Batch updating where provider will cache multiple changes and then send them to the database with the UpdateBatch method.
+---
+- The cursor type can be set by the CursorType property or by the CursorType parameter in the Open method.
+- 4 different cursor types are:
+- a. Dynamic cursor - Allows you to see additions, changes, and deletions by other users.
+- b. Keyset cursor - Like a dynamic cursor, except that you cannot see additions by other users, and it prevents access to records that other users have deleted. Data changes by other users will still be visible.
+- c. Static cursor - Provides a static copy of a recordset for you to use to find data or generate reports. Additions, changes, or deletions by other users will not be visible. This is the only type of cursor allowed when you open a client-side Recordset object.
+- d. Forward-only cursor - Allows you to only scroll forward through the Recordset. Additions, changes, or deletions by other users will not be visible. 
+
+---
+- Properties:
+- AbsolutePage: Sets or returns a value that specifies the page number in the Recordset object
+- AbsolutePosition: Sets or returns a value that specifies the ordinal position of the current record in the Recordset object
+- ActiveCommand: Returns the Command object associated with the Recordset
+- ActiveConnection: Sets or returns a definition for a connection if the connection is closed, or the current Connection object if the connection is open
+- BOF: Returns true if the current record position is before the first record, otherwise false
+- Bookmark; Sets or returns a bookmark. The bookmark saves the position of the current record
+- CacheSize: Sets or returns the number of records that can be cached
+- CursorLocation: Sets or returns the location of the cursor service
+- CursorType: Sets or returns the cursor type of a Recordset object
+- DataMember: Sets or returns the name of the data member that will be retrieved from the object referenced by the DataSource property
+- DataSource: Specifies an object containing data to be represented as a Recordset object
+- EditMode: Returns the editing status of the current record
+- EOF: Returns true if the current record position is after the last record, otherwise false
+- Filter: Sets or returns a filter for the data in a Recordset object
+- Index: Sets or returns the name of the current index for a Recordset object
+- LockType: Sets or returns a value that specifies the type of locking when editing a record in a Recordset
+- MarshalOptions: Sets or returns a value that specifies which records are to be returned to the server
+- MaxRecords: Sets or returns the maximum number of records to return to a Recordset object from a query
+- PageCount: Returns the number of pages with data in a Recordset object
+- PageSize: Sets or returns the maximum number of records allowed on a single page of a Recordset object
+- RecordCount: Returns the number of records in a Recordset object
+- Sort: Sets or returns the field names in the Recordset to sort on
+- Source: Sets a string value or a Command object reference, or returns a String value that indicates the data source of the Recordset object
+- State: Returns a value that describes if the Recordset object is open, closed, connecting, executing or retrieving data
+- Status: Returns the status of the current record with regard to batch updates or other bulk operations
+- StayInSync: Sets or returns whether the reference to the child records will change when the parent record position changes
+
+---
+- METHODS:
+- AddNew: Creates a new record
+- Cancel: Cancels an execution
+- CancelBatch: Cancels a batch update
+- CancelUpdate: Cancels changes made to a record of a Recordset object
+- Clone: Creates a duplicate of an existing Recordset
+- Close: Closes a Recordset
+- CompareBookmarks: Compares two bookmarks
+- Delete: Deletes a record or a group of records
+- Find: Searches for a record in a Recordset that satisfies a specified criteria
+- GetRows: Copies multiple records from a Recordset object into a two-dimensional array
+- GetString: Returns a Recordset as a string
+- Move: Moves the record pointer in a Recordset object
+- MoveFirst: Moves the record pointer to the first record
+- MoveLast: Moves the record pointer to the last record
+- MoveNext:Moves the record pointer to the next record
+- MovePrevious: Moves the record pointer to the previous record
+- NextRecordset: Clears the current Recordset object and returns the next Recordset object by looping through a series of commands
+- Open: Opens a database element that gives you access to records in a table, the results of a query, or to a saved Recordset
+- Requery: Updates the data in a Recordset by re-executing the query that made the original Recordset
+- Resync: Refreshes the data in the current Recordset from the original database
+- Save: Saves a Recordset object to a file or a Stream object
+- Seek: Searches the index of a Recordset to find a record that matches the specified values
+- Supports: Returns a boolean value that defines whether or not a Recordset object supports a specific type of functionality
+- Update: Saves all changes made to a single record  in a Recordset object
+- UpdateBatch: Saves all changes in a Recordset to the database. Used when working in batch update mode
+
+---
+- EVENTS:
+- EndOfRecordset: Triggered when you try to move to a record after the last record
+- FetchComplete: Triggered after all records in an asynchronous operation have been fetched
+- FetchProgress; Triggered periodically in an asynchronous operation, to state how many more records that have been fetched
+- FieldChangeComplete: Triggered after the value of a Field object change
+- MoveComplete: Triggered after the current position in the Recordset has changed
+- RecordChangeComplete: Triggered after a record has changed
+- RecordsetChangeComplete: Triggered after the Recordset has changed
+- WillChangeField: Triggered before the value of a Field object change
+- WillChangeRecord: Triggered before a record change
+- WillChangeRecordset: Triggered before a Recordset change
+- WillMove: Triggered before the current position in the Recordset changes
+
+
+### 10.9 ADO Stream Object
+- Used to read, write and manage stream of binary data or text.
+- it can be obtained in three ways: 
+- a. rom a URL pointing to a document, a folder, or a Record object
+- b. By instantiating a Stream object to store data for your application
+- c. By opening the default Stream object associated with a Record object
+
+---
+- Properties:
+- a. CharSet: Sets or returns a value that specifies into which character set the contents are to be translated. This property is only used with text Stream objects (type is adTypeText)
+- b. EOS: Returns whether the current position is at the end of the stream or not
+- c. LineSeparator: Sets or returns the line separator character used in a text Stream object
+- d. Mode: Sets or returns the available permissions for modifying data
+- e. Position: Sets or returns the current position (in bytes) from the beginning of a Stream object
+- f. Size: Returns the size of an open Stream object
+- g. State: Returns a value describing if the Stream object is open or closed
+- h. Type: Sets or returns the type of data in a Stream object
+
+---
+- Methods:
+- a. Cancel	: Cancels an execution of an Open call on a Stream object
+- b. Close: Closes a Stream object
+- c. CopyTo: Copies a specified number of characters/bytes from one Stream object into another Stream object
+- d. Flush: Sends the contents of the Stream buffer to the associated underlying object
+- e. LoadFromFile: Loads the contents of a file into a Stream object
+- f. Open: Opens a Stream object
+- g. Read: Reads the entire stream or a specified number of bytes from a binary Stream object
+- h. ReadText: Reads the entire stream, a line, or a specified number of characters from a text Stream object
+- i. SaveToFile: Saves the binary contents of a Stream object to a file
+- j. SetEOS: Sets the current position to be the end of the stream (EOS)
+- k. SkipLine: Skips a line when reading a text Stream
+- l. Write: Writes binary data to a binary Stream object
+- m. WriteText: Writes character data to a text Stream object
+
+### 10.10. ADO Data Types
+- In Access, there are YesNo, Currency, Date, DateTime, Double, AutoNumber Integer Long, Single, Integer, Byte, text.
+- In SQL Server, Bit, Char, BigIng, Binary timestamp, money smallmoney, Datetime, Float, identity Int, Image, Int, Decimal Numeric, smallInt, tinytin, VarBinary, VarChar.
+
 
 
 
