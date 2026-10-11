@@ -288,4 +288,338 @@ for (int i = 0; i < numbers.GetLength(0); i++)
 } 
 ```
 
+### 12. Methods
+- block of code which only runs when called, also known as functions and made to reuse code.
+```
+class Program {
+static void MyMethod() 
+{
+  Console.WriteLine("I just got executed!");
+}
+
+static void Main(string[] args)
+{
+  MyMethod();
+}
+}
+```
+- static means that the method belongs to the Program class and not an object of the Program class.
+- Parameters act as variables inside method and arguments are passed to methods.
+```
+static void MyMethod(string fname, int age) 
+{
+  Console.WriteLine(fname + " is " + age);
+}
+
+static void Main(string[] args)
+{
+  MyMethod("RAM", 5);
+
+}
+```
+- fname and age are parameters and "RAM", 5 are arguments.
+- default parameter value can be passed using equal sign and also known as optional parameter.
+- void keyword before method Name means no value returned and return keyword means returns some data type value.
+- C# Named Arguments make possible to send arguments with key:value syntax and order of arguments does not matter.
+```
+static void MyMethod(string child1, string child2, string child3) 
+{
+  Console.WriteLine("The youngest child is: " + child3);
+}
+
+static void Main(string[] args)
+{
+  MyMethod(child3: "John", child1: "Liam", child2: "Liam");
+}
+
+// The youngest child is: John
+```
+
+- Method overloading means multiple method can have same name with different parameters.
+```
+static int PlusMethod(int x, int y)
+{
+  return x + y;
+}
+
+static double PlusMethod(double x, double y)
+{
+  return x + y;
+}
+
+static void Main(string[] args)
+{
+  int myNum1 = PlusMethod(8, 5);
+  double myNum2 = PlusMethod(4.3, 6.26);
+  Console.WriteLine("Int: " + myNum1);
+  Console.WriteLine("Double: " + myNum2);
+}
+```
+
+### 13. OOP
+- OOP is about creating objects having both data and methods and made for building scalable, reusable, and maintainable DRY code.
+- Class is template and object is its instance.
+```
+class Car 
+{
+  string color = "red";  //field or attribute
+
+  static void Main(string[] args)
+  {
+    Car myObj = new Car();
+    Console.WriteLine(myObj.color);
+  }
+}
+```
+
+- Class members are fields and method inside class.
+
+#### 13.1. Constructor
+- Special method used to initialize objects and its called when object created and used to set initial values for fields.
+```
+lass Car
+{
+  public string model;
+  public string color;
+  public int year;
+
+  // Create a class constructor with multiple parameters
+  public Car(string modelName, string modelColor, int modelYear)
+  {
+    model = modelName;
+    color = modelColor;
+    year = modelYear;
+  }
+ static void Main(string[] args)
+  {
+    Car Ford = new Car("Mustang", "Red", 1969);  
+    Console.WriteLine(Ford.color + " " + Ford.year + " " + Ford.model);
+  }
+}
+```
+- constructor name must match the class name, and it cannot have a return type (like void or int).
+- All classes have constructors by default: if you do not create a class constructor yourself, C# creates one for you.
+- Constructors save time because without it you initialize 3 fields 3 times.
+
+#### 13.2. Access Modifiers
+- They are to achieve Encapsulation, so that sensitive data is hidden from users.
+- Public, Private, protected and internal are access modifiers.
+- public: The code is accessible for all classes
+- private: The code is only accessible within the same class
+- protected: The code is accessible within the same class, or in a class that is inherited from that class.
+- internal: The code is only accessible within its own assembly, but not from another assembly.
+
+#### 13.3 Properties(Get and Set)
+- Sometimes we may need to access private variables fields, so it can be done with properties with get and set methods.
+- Property is like combination of variable and methods to access and update value of private field.
+```
+class Person
+{
+  private string name; // field
+  public string Name   // property
+  {
+    get { return name; }
+    set { name = value; }
+  }
+}
+
+class Program  //here this class is accessing private name field of class person using properties
+{
+  static void Main(string[] args)
+  {
+    Person myObj = new Person();
+    myObj.Name = "Ameer";
+    Console.WriteLine(myObj.Name);
+  }
+}
+```
+
+
+- Shorthand or automatic properties is "public string Name {get; set;}" and you do not need to define field.
+- Encapsulation helps make code flexible and not messed up and it helps field to be made read-only using only get method and write only using only set method.
+
+
+#### 13.4 Inheritance
+- Inherit fields and methods by derived class of base parent class using colon(:) symbol.
+- If you don't want other classes to inherit from a class, use the sealed keyword.
+```
+class Vehicle  // base class (parent) 
+{
+  public string brand = "Ford";  // Vehicle field
+  public void honk()             // Vehicle method 
+  {                    
+    Console.WriteLine("Tuut, tuut!");
+  }
+}
+
+class Car : Vehicle  // derived class (child)
+{
+  public string modelName = "Mustang";  // Car field
+}
+class Program
+{
+  static void Main(string[] args)
+  {
+    // Create a myCar object
+    Car myCar = new Car();
+
+    // Call the honk() method (From the Vehicle class) on the myCar object
+    myCar.honk();
+
+    // Display the value of the brand field (from the Vehicle class) and the value of the modelName from the Car class
+    Console.WriteLine(myCar.brand + " " + myCar.modelName);
+  }
+}
+```
+
+#### 13.5 Polymorphism
+- Polymorphism means "many forms" and uses inherited class methods to perform different task.
+- In this example, same output from Base class is shown three times even its derived class has their own implementation because the base class method overrides the derived class method, when they share the same name.
+```
+ class Animal  // Base class (parent) 
+{
+  public void animalSound() 
+  {
+    Console.WriteLine("The animal makes a sound");
+  }
+}
+
+class Pig : Animal  // Derived class (child) 
+{
+  public void animalSound() 
+  {
+    Console.WriteLine("The pig says: wee wee");
+  }
+}
+
+class Dog : Animal  // Derived class (child) 
+{
+  public void animalSound() 
+  {
+    Console.WriteLine("The dog says: bow wow");
+  }
+}
+
+class Program 
+{
+  static void Main(string[] args) 
+  {
+    Animal myAnimal = new Animal();  // Create a Animal object
+    Animal myPig = new Pig();  // Create a Pig object
+    Animal myDog = new Dog();  // Create a Dog object
+
+    myAnimal.animalSound();
+    myPig.animalSound();
+    myDog.animalSound();
+  }
+}
+
+//Output (which is not right, so use polymorphism to get correct output)
+//The animal makes a sound
+//The animal makes a sound
+//The animal makes a sound
+```
+- C# provides an option to override the base class method, by adding the virtual keyword to the method inside the base class, and by using the override keyword for each derived class methods
+```
+class Animal  // Base class (parent) 
+{
+  public virtual void animalSound() //here base class method has virtual keyword
+  {
+    Console.WriteLine("The animal makes a sound");
+  }
+}
+
+class Pig : Animal  // Derived class (child) 
+{
+  public override void animalSound()   //here child class has override keyword to override base class method
+  {
+    Console.WriteLine("The pig says: wee wee");
+  }
+}
+
+class Dog : Animal  // Derived class (child) 
+{
+  public override void animalSound() 
+  {
+    Console.WriteLine("The dog says: bow wow");
+  }
+}
+
+class Program 
+{
+  static void Main(string[] args) 
+  {
+    Animal myAnimal = new Animal();  // Create a Animal object
+    Animal myPig = new Pig();  // Create a Pig object
+    Animal myDog = new Dog();  // Create a Dog object
+
+    myAnimal.animalSound();
+    myPig.animalSound();
+    myDog.animalSound();
+  }
+}
+
+//Output:
+//The animal makes a sound
+//The pig says: wee wee
+//The dog says: bow wow
+```
+
+### 13.6 Abstraction
+- Process of hiding certain details and showing only essential info to user.
+- It can be achieved with either abstract classes or interfaces.
+- Abstract class is a restricted class that cannot be used to create objects (to access it, it must be inherited from another class).
+- An abstract class can have both abstract and regular methods
+```
+abstract class Animal 
+{
+  public abstract void animalSound();   //abstract method
+  public void sleep() 				//normal method
+  {
+    Console.WriteLine("meoww");
+  }
+}
+
+Animal myObj = new Animal(); // Will generate an error
+```
+- Abstract method can only be used in an abstract class, and it does not have a body. The body is provided by the derived class (inherited from).
+
+```
+// Abstract class
+abstract class Animal
+{
+  // Abstract method (does not have a body)
+  public abstract void animalSound();
+  // Regular method
+  public void sleep()
+  {
+    Console.WriteLine("zzz");
+  }
+}
+
+// Derived class (inherit from Animal)
+class Pig : Animal
+{
+  public override void animalSound()
+  {
+    // The body of animalSound() is provided here
+    Console.WriteLine("The pig says: wee wee");
+  }
+}
+
+class Program
+{
+  static void Main(string[] args)
+  {
+    Pig myPig = new Pig(); // Create a Pig object
+    myPig.animalSound();  // Call the abstract method
+    myPig.sleep();  // Call the regular method
+  }
+}
+```
+
+
+
+
+
 
