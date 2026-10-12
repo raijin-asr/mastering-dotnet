@@ -619,6 +619,183 @@ class Program
 ```
 
 
+### 13.7 Interface
+- another way to achieve abstraction.
+- is completely abstract class, only contain abstract methods and properties with empty bodies.
+-  Bit does not contain fields, and by default members are abstract and public.
+- It must be inherited by another class to implement just like inheritance using (:) symbol and no need to use override keyword.
+```
+// Interface
+interface IAnimal 
+{
+  void animalSound(); // interface method (does not have a body)
+}
+
+// Pig "implements" the IAnimal interface
+class Pig : IAnimal 
+{
+  public void animalSound() 
+  {
+    // The body of animalSound() is provided here
+    Console.WriteLine("The pig says: wee wee");
+  }
+}
+
+class Program 
+{
+  static void Main(string[] args) 
+  {
+    Pig myPig = new Pig();  // Create a Pig object
+    myPig.animalSound();
+  }
+}
+```
+
+- C# does not support multiple inheritance but can be achieved with interfaces because class can implement multiple interfaces.
+```
+{
+  void myMethod(); // interface method
+}
+
+interface ISecondInterface 
+{
+  void myOtherMethod(); // interface method
+}
+
+// Implement multiple interfaces
+class DemoClass : IFirstInterface, ISecondInterface 
+{
+  public void myMethod() 
+  {
+    Console.WriteLine("Some text..");
+  }
+  public void myOtherMethod() 
+  {
+    Console.WriteLine("Some other text...");
+  }
+}
+
+class Program 
+{
+  static void Main(string[] args)
+  {
+    DemoClass myObj = new DemoClass();
+    myObj.myMethod();
+    myObj.myOtherMethod();
+  }
+}
+```
+
+### 13.8 Enums
+- Enum is special class that represents a group of constant, read-only unchangeable variables.
+- Enum is short for "enumerations", which means "specifically listed".
+- Use enums when you have values that you know aren't going to change, like month days, days, colors, deck of cards, etc
+```
+class Program
+{
+  enum Level
+  {
+    Low,
+    Medium,
+    High
+  }
+  static void Main(string[] args)
+  {
+    Level myVar = Level.Medium;
+    Console.WriteLine(myVar);
+  }
+}
+```
+
+### 13.9 Files
+- File class from the System.IO namespace, allows us to work with files
+___
+- Methods:
+- AppendText(): Appends text at the end of an existing file
+- Copy(): Copies a file
+- Create(): Creates or overwrites a file
+- Delete(): Deletes a file
+- Exists(): Tests whether the file exists
+- ReadAllText(): Reads the contents of a file
+- Replace(): Replaces the contents of a file with the contents of another file
+- WriteAllText(): Creates a new file and writes the contents to it. If the file already exists, it will be overwritten.
+___
+- Eg. Write to file and read it
+```
+using System.IO;  // include the System.IO namespace
+
+string writeText = "Hello World!";  // Create a text string
+File.WriteAllText("filename.txt", writeText);  // Create a file and write the content of writeText to it
+
+string readText = File.ReadAllText("filename.txt");  // Read the contents of the file
+Console.WriteLine(readText);  // Output the content
+```
+
+### 13.10 Exceptions and TryCatch
+- Exception is thrown when error happens.
+- Try Catch used to handle it where try statement has block of code to be test for errors and catch execute it catch logic when error occurs.
+```
+try
+{
+  int[] myNumbers = {1, 2, 3};
+  Console.WriteLine(myNumbers[10]);
+}
+catch (Exception e)
+{
+  Console.WriteLine(e.Message);
+}
+
+//Output:
+//Index was outside the bounds of the array.
+
+//BUT without try catch, it shows
+//System.IndexOutOfRangeException: 'Index was outside the bounds of the array.'
+```
+
+- Finally statement lets to execute code after try catch regardless of result.
+```
+try
+{
+  int[] myNumbers = {1, 2, 3};
+  Console.WriteLine(myNumbers[10]);
+}
+catch (Exception e)
+{
+  Console.WriteLine("Something went wrong.");
+}
+finally
+{
+  Console.WriteLine("The 'try catch' is finished.");
+}
+
+//Output:
+//Something went wrong.
+//The 'try catch' is finished.
+```
+
+- Throw keyword allows to create a custom error.
+- Its used together with an exception class like ArithmeticException, FileNotFoundException, IndexOutOfRangeException, TimeOutException.
+```
+static void checkAge(int age)
+{
+  if (age < 18)
+  {
+    throw new ArithmeticException("Access denied - You must be at least 18 years old.");
+  }
+  else
+  {
+    Console.WriteLine("Access granted - You are old enough!");
+  }
+}
+
+static void Main(string[] args)
+{
+  checkAge(15);
+}
+
+//Output:
+//System.ArithmeticException: 'Access denied - You must be at least 18 years old.'
+```
 
 
 
