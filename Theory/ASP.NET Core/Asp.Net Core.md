@@ -699,3 +699,237 @@ ___
 ```
 
 - The asp-action = "Details" is the name of the action that we want to get to and asp-route-Id is taghelper.
+
+### 7. Identity Framework
+
+#### 7.1 Overview
+- Used to implement forms authentication like windows auth or third party auth like Google, Facebook, Microsoft, or GitHub etc.
+- It allows to add feature where users can register and login or logout.
+- So here User Entity, -UserStore<T> class and IdentityDB<t> classes are needed.
+- User Entity class inherit from base class in Identity framework which gives user properties like username and email address, which is plugged into UserStore class to create users and validate user passwords talking to database and user class is also plugged to IdentiyDB class which does EF DBContext to do actual database work.
+- SignInManager and Identity Middleware are two pieces of Identity Framework where SignInManager can sign in user and sign out by manageing cookie, and Identiy Middleware reads this cookie and identify user.
+- It handles secure user data storage, password hashing, roles, claims, tokens, and multi-factor authentication (MFA) out of the box, saving you from writing custom authentication systems.
+___
+- A. Core Models (Entities)
+- ASP.NET Core Identity relies on Entity Framework Core (EF Core) to map entities to relational database tables:
+- IdentityUser: Represents an application user (stores UserName, Email, PasswordHash, PhoneNumber, lockout states, etc.). Can be subclassed to add custom fields (e.g., FirstName, DateOfBirth).   
+- IdentityRole: Represents user roles (e.g., Admin, User) used for role-based authorization.   
+- IdentityDbContext: The EF Core database context class that manages identity tables (like AspNetUsers, AspNetRoles, etc.).
+___
+- B. Core Services & Managers
+- UserManager<TUser>: A high-level service API used to manage users (create, update, delete, change passwords, manage roles, and validate credentials).   
+- SignInManager<TSignIn>: Handles sign-in operations (e.g., signing users in/out, checking password credentials via PasswordSignInAsync, and managing external logins/2FA).
+- RoleManager<TRole>: Manages role creation, deletion, and permission assignments.   
+___
+- C. Authorization Mechanisms
+- Role-Based Authorization: Restricts access based on assigned groups.Example: [Authorize(Roles = "Admin")]
+- Claims-Based Authorization: Restricts access based on key-value pairs (Claim) associated with the user profile (e.g., Permission = "EditProducts"). Example: [Authorize(Policy = "RequireEmployeeClaim")]
+___
+D. Typical Setup & Implementation Workflow
+- First, Configure Services: Register Identity services in Program.cs linked to an EF Core database context.
+```
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddEntityFrameworkStores<ApplicationDbContext>();
+```
+- Second, Add Middleware: Ensure authentication and authorization middlewares are active in the request pipeline (app.UseAuthentication(); and app.UseAuthorization();).
+- Third, Database Migration: Generate and apply migrations via EF Core CLI commands (dotnet ef migrations add and dotnet ef database update) to spin up the required Identity tables.
+- Last, UI Integration: Scaffold pre-built Razor Pages or UI components for login/registration or configure Minimal API endpoints (e.g., using AddIdentityApiEndpoints()).
+___
+
+
+#### 7.2 Authorize Attribute
+- ASP.NET Core's [Authorize] attribute is a built-in security feature used to restrict access to controllers and actions so that only authenticated (and optionally authorized) users can access them.
+- Authentication vs. Authorization: Authentication verifies who you are (logging in), while authorization determines what you are allowed to do (permissions, roles). [Authorize] handles both by ensuring the user is logged in first, and optionally checking if they meet specific criteria.
+- Default Behavior: By default, placing [Authorize] with no parameters simply requires the user to be authenticated (logged in), regardless of their role or claims.
+
+__
+- How to use it:
+- 1. Protecting an Entire Controller -- Apply the attribute at the top of a controller class to secure every action method inside it:
+```
+[Authorize]
+public class DashboardController : Controller
+{
+    public IActionResult Index() => View();
+}
+```
+- 2. Protecting Specific Actions -- Apply it to individual action methods while leaving other parts of the controller public:
+```
+public class HomeController : Controller
+{
+    public IActionResult Index() => View(); // Public
+
+    [Authorize]
+    public IActionResult Settings() => View(); // Requires login
+}
+```
+- 3. Role-Based Authorization -- Restrict access to users belonging to specific roles using the Roles property:
+```
+[Authorize(Roles = "Admin")]
+public IActionResult AdminPanel() => View();
+
+// Multiple roles (user must be in Admin OR Manager)
+[Authorize(Roles = "Admin, Manager")]
+public IActionResult Reports() => View();
+```
+- 4. Policy-Based Authorization
+For more complex rules (e.g., "Must be at least 18 years old" or "Must own the document"), use custom policies:
+```
+[Authorize(Policy = "AtLeast21")]
+public IActionResult BuyAlcohol() => View();
+```
+___
+- Bypassing Authorization : Use the [AllowAnonymous] attribute to override an [Authorize] rule set at the controller level, making a specific action public:
+```
+[Authorize]
+public class ProductsController : Controller
+{
+    [AllowAnonymous] // Anyone can view the catalog
+    public IActionResult Catalog() => View();
+
+    public IActionResult Checkout() => View(); // Requires login
+}
+```
+
+#### 7.3 Step-by-Step Implementation Guide (MVC / Controllers)
+- conceptual implementation showing how to register, log in, and log out a user using UserManager and SignInManager.
+___
+- Step A: Configure Identity in Program.cs. First, wire up the Identity services and your database context so the app knows how to talk to SQL Server.
+```
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using YourApp.Data;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// 1. Add DbContext with SQL Server
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// 2. Add Default Identity
+builder.Services.AddDefaultIdentity<IdentityUser>(options => {
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 6;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>();
+
+var builderApp = builder.Build();
+// ... middleware configuration (app.UseAuthentication(); app.UseAuthorization(); etc.)
+```
+___
+- Step B: User Registration. Registration means capturing input data (Email and Password), creating a new IdentityUser instance, and saving it via UserManager.
+- The View Model: (its not model that maps database table, its only required property or columns of table)
+```
+public class RegisterViewModel
+{
+    [Required, EmailAddress]
+    public string Email { get; set; }
+
+    [Required, DataType(DataType.Password)]
+    public string Password { get; set; }
+}
+```
+- The Controller Action:
+```
+[HttpPost]
+public async Task<IActionResult> Register(RegisterViewModel model)
+{
+    if (ModelState.IsValid)
+    {
+        // Map data to IdentityUser
+        var user = new IdentityUser { UserName = model.Email, Email = model.Email };
+
+        // Create user with hashed password
+        var result = await _userManager.CreateAsync(user, model.Password);
+
+        if (result.Succeeded)
+        {
+            // Automatically sign them in after registration (optional)
+            await _signInManager.SignInAsync(user, isPersistent: false);
+            return RedirectToAction("Index", "Home");
+        }
+
+        // If creation failed, add errors to view
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError(string.Empty, error.Description);
+        }
+    }
+    return View(model);
+}
+```
+ - Step C: User Login: Login checks if the submitted password matches the stored hash and issues an encrypted authentication cookie
+- The View Model:
+```
+public class LoginViewModel
+{
+    [Required, EmailAddress]
+    public string Email { get; set; }
+
+    [Required, DataType(DataType.Password)]
+    public string Password { get; set; }
+
+    [Display(Name = "Remember Me")]
+    public bool RememberMe { get; set; }
+}
+```
+- The Controller Action:
+```
+[HttpPost]
+public async Task<IActionResult> Login(LoginViewModel model)
+{
+    if (ModelState.IsValid)
+    {
+        // Sign-in manager checks password and creates cookie
+        var result = await _signInManager.PasswordSignInAsync(
+            model.Email, 
+            model.Password, 
+            model.RememberMe, 
+            lockoutOnFailure: false);
+
+        if (result.Succeeded)
+        {
+            return RedirectToAction("Index", "Home");
+        }
+
+        ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+    }
+    return View(model);
+}
+```
+___
+- Step D: User Logout: Logging out clears the authentication cookie from the browser session.(Note: Always use an [HttpPost] for logout to prevent Cross-Site Request Forgery (CSRF) vulnerabilities).
+```
+[HttpPost]
+public async Task<IActionResult> Logout()
+{
+    // Clears the authentication cookie
+    await _signInManager.SignOutAsync();
+    return RedirectToAction("Index", "Home");
+}
+```
+___
+- Checking Authentication Status in Views (.cshtml): easily toggle what options the user sees depending on whether they are logged in using Razor syntax
+```
+@if (SignInManager.IsSignedIn(User))
+{
+    <!-- Shown if logged in -->
+    <span>Hello, @User.Identity.Name!</span>
+    <form asp-controller="Account" asp-action="Logout" method="post">
+        <button type="submit" class="btn btn-link">Logout</button>
+    </form>
+}
+else
+{
+    <!-- Shown if logged out -->
+    <a asp-controller="Account" asp-action="Register">Register</a>
+    <a asp-controller="Account" asp-action="Login">Login</a>
+}
+```
+
+
+
+
+
