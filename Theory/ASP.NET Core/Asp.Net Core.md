@@ -492,4 +492,210 @@ ___
 - Razor was created specifically as a view engine for ASP.NET MVC (to replace the older, clunky WebForms syntax like <%= Response.Write(...) %>).
 - However, years later, Microsoft realized that developers building simple pages didn't always want the overhead of creating a separate Controller file just to show a view. That led to the creation of Razor Pages (introduced in .NET Core 2.0) as an alternative to MVC, utilizing the same Razor syntax.
 
+### 5. Entity Framework
+- an Object-Relational Mapper (ORM) for .NET developers.
+- Traditionally, to talk to a database, you had to write raw SQL queries (SELECT, INSERT, UPDATE, DELETE) and map the result rows manually back into your code.
+- But it solve this issue by letting you interact with your database using C# classes and objects instead of SQL. EF automatically translates your C# code into SQL behind the scenes.
 
+#### 5.1. EF Core Concepts
+- A. Entities (Models) are simply a C# class that maps to a table in your database. Each property in the class represents a column in that table
+```
+public class Product 
+{
+    public int Id { get; set; }        // Primary Key
+    public string Name { get; set; }   // Column
+    public decimal Price { get; set; } // Column
+}
+```
+___
+- B. DbContext (The Bridge): The DbContext is the most important class in EF Core. It acts as a bridge between your C# application and the database.
+- It tracks changes made to your objects. 
+- It manages database connections. 
+- It uses DbSet<T> to represent database tables.
+```
+public class AppDbContext : DbContext 
+{
+    public DbSet<Product> Products { get; set; } // Represents the 'Products' table
+}
+```
+___
+ - C. LINQ (Language Integrated Query): Instead of writing SQL strings, you query your database using C# LINQ syntax. 
+- EF converts these queries into SQL automatically. 
+```
+// Example: Find all products cheaper than $10
+var cheapProducts = context.Products.Where(p => p.Price < 10).ToList();
+```  
+
+#### 5.2. EF Development Appraoches
+- EF Core primarily supports two main approaches: Code First and Database first.
+- Code First (Most Popular for Beginners): You write your C# classes and DbContext first, and EF generates the database schema for you.  
+- Database First: You already have an existing database, and EF generates the C# classes for you automatically.
+
+### 5.3 How to Handle Database Changes (Migrations)
+- Before you can run EF terminal commands, you need to install the EF command-line tool globally (you only need to do this once on your machine): " dotnet tool install --global dotnet-ef"
+- When using the Code First approach, whenever you change your C# classes (e.g., add a new property to Product), you need to update your database. EF handles this via Migrations: 
+- dotnet ef migrations add InitialCreate  - Creates a migration file detailing what changes to make.   
+- dotnet ef database update - Applies those changes to the actual SQL database.
+- dotnet ef migrations remove - to undo last migration if not applied yet
+- dotnet ef migrations script -o migration.sql - Generate a raw SQL script from your migrations (great for production deployment):
+
+#### 5.4 EF CRUD operations
+- Create (Insert):
+```
+var product = new Product { Name = "Laptop", Price = 100};
+context.Products.Add(product);
+context.SaveChanges(); //commits changes to database
+```
+
+- Read(Select): 
+``` var products = context.Products.ToList(); //Gets all records```
+
+- Update:
+```
+var products = context.Products.Find(1); //find product with ID 1
+product.Price = 100;
+context.SaveChanges();// EF auto detect changes and updates
+```
+
+- Delete:
+```
+var product = context.Products.Find(1);
+context.Products.Remove(product);
+context.SaveChanges();
+```
+
+#### 5.5 Pros and Cons of EF:
+- Pros:
+- High Productivity: Write less boilerplate data-access code.
+- Switch from SQL Server to PostgreSQL or SQLite with minimal code changes.
+- Type Safety: Catch errors at compile-time using C# / LINQ rather than runtime SQL errors.
+___
+- Cons:
+- Performance Overhead: Raw SQL can sometimes be faster for ultra-complex queries.
+- "Black Box" Effect: If you don't understand how it translates code to SQL, it can generate inefficient queries.
+
+### 6. Razor 
+
+#### 6.1. Razor Layout Views
+- A Layout view is a special Razor view with a *.cshtml extension i.e. _Layout.cshtml
+- Its like skeleton or master template of your website.
+- It has shared common elements to avoid repeated use of them such as header, logo, menu or sidebar or footer.
+```
+<!DOCTYPE html> 
+<html> 
+   
+   <head> 
+      <meta name = "viewport" content = "width = device-width" /> 
+      <title>@ViewBag.Title</title> 
+   </head> 
+
+   <body> 
+      <div> 
+        @DateTime.Now 
+      </div> 
+      
+      <div> 
+        @RenderBody() 
+      </div> 
+      
+   </body> 
+</html>
+```
+- here @renderbody expression render other view and RenderBody() is a placeholder method inside the layout file that says: "Inject the specific content of the current view right here.
+- ViewBag is a dynamic container used to pass data from a Controller to a View (from the backend C# code to the frontend HTML).
+```
+//In controller C#
+public IActionResult Index()
+{
+    ViewBag.Message = "Welcome to my website!";
+    ViewBag.VisitorCount = 42;
+    return View();
+}
+
+//in .cshtml view
+<h2>@ViewBag.Message</h2>
+<p>Total visitors: @ViewBag.VisitorCount</p>
+```
+
+#### 6.2. Razor View Start
+- The _ViewStart.cshtml file is a special configuration file in ASP.NET Core MVC and Razor Pages.
+- Think of _ViewStart.cshtml as a "run this code before you render any view" instruction file.
+- The Problem It Solves: Imagine you have 30 different pages (Home, About, Contact, Products, etc.) in your web app. Without a _ViewStart file, you would have to manually type this line at the top of every single individual page:
+```
+@{
+    Layout = "_Layout";
+}
+```
+- The Solution: By putting that line inside _ViewStart.cshtml once, the Razor engine automatically executes it before rendering any content page. Every page inherits your layout template automatically.
+- It is typically located right inside the root of the Views folder (next to your Shared folder):
+```
+Views/
+├── _ViewStart.cshtml  <-- Automatically runs for views in this folder & subfolders
+├── _ViewImports.cshtml
+├── Shared/
+│   └── _Layout.cshtml
+└── Home/
+    └── Index.cshtml
+```
+
+#### 6.3 Razor View Import
+- This view is new special global configuration file in MVC, old XML files to configure certain aspect of using or imports are gone and code is used now.
+- Instead of writing the same code at the top of every single .cshtml file, you write it once here, and it applies automatically to all views in that folder and its subfolders.
+- Imagine you have 20 different view pages, and almost all of them need to use your models (e.g., @using MyApp.Models) and Tag Helpers. Without this file, you would have to type those lines at the top of all 20 files.
+```
+@using MyWebsite.Models
+@using MyWebsite.ViewModels
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+```
+
+- 3 main things found in this file, such as @using statements, @addTagHelper statements: To enable ASP.NET Core Tag Helpers (which turn standard HTML tags into powerful server-side tools, like <form asp-action="Index">) and @inject statements: To inject services directly into your views if needed.
+
+#### 6.4 Razor Tag Helpers
+- Tag Helpers enable server-side code to participate in creating and rendering HTML elements in Razor files. Tag helpers are a new feature and similar to HTML helpers, which help us render HTML.
+- They look like standard HTML attributes, making your HTML clean and easy to read for both designers and developers.
+- There are many built-in Tag Helpers for common tasks, such as creating forms, links, loading assets etc. Tag Helpers are authored in C#, and they target HTML elements based on the element name, the attribute name, or the parent tag.
+- For example, the built-in LabelTagHelper can target the HTML <label> element when the LabelTagHelper attributes are applied.
+- They reduce the explicit transitions between HTML and C# in Razor views and need to install NuGet Library to use it.
+- anybody can author a tag helper, write own tag helper.
+- By default, they are not just rendered down to the client, so need to tell Razor view engine about it by registering it using asterirk comman (#,) and assembly name as "@addTagHelper "*, Microsoft.AspNet.Mvc.TagHelpers"
+```
+//Normal code
+@model HomePageViewModel  
+@{  
+   ViewBag.Title = "Home"; 
+} 
+<h1>Welcome!</h1> 
+
+<table> 
+   @foreach (var employee in Model.Employees) { 
+      <tr> 
+         <td>
+            @Html.ActionLink(employee.Id.ToString(), "Details", new { id = employee.Id })
+         </td> 
+         <td>@employee.Name</td> 
+      </tr> 
+   } 
+</table>
+```
+___
+```
+// same code with tag helper 
+@model HomePageViewModel  
+@{  
+   ViewBag.Title = "Home"; 
+} 
+<h1>Welcome!</h1> 
+
+<table> 
+   @foreach (var employee in Model.Employees) { 
+      <tr> 
+         <td> 
+            <a asp-action="Details" asp-route-id="@employee.Id" >Details</a> 
+         </td> 
+         <td>@employee.Name</td> 
+      </tr> 
+   } 
+</table> 
+```
+
+- The asp-action = "Details" is the name of the action that we want to get to and asp-route-Id is taghelper.
