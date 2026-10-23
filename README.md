@@ -19,25 +19,25 @@ My approach is **Theory First (Basic to Advanced)**, followed by practical imple
 
 | Day | Topic | Key Learning / Theory | Status |
 | :--- | :--- | :--- | :--- |
-| **01** | C# Fundamentals | Generics, Delegates, and Events revision | 🏁 Started |
-| **02** | Async/Await | Tasks, Threading, and Deadlocks in .NET | ⏳ Pending |
-| **03** | ASP.NET Lifecycle | How IIS handles requests (Classic vs Core) | 📅 Upcoming |
-| **04** | MVC Pattern | Routing, Model Binding, and Razor basics | 📅 Upcoming |
+| **01** | C# Fundamentals | Generics, Delegates, and Events revision | ✅ Completedd |
+| **02** | Async/Await | Tasks, Threading, and Deadlocks in .NET | ✅ Completed |
+| **03** | ASP.NET Lifecycle | How IIS handles requests (Classic vs Core) | ✅ Completed |
+| **04** | MVC Pattern | Routing, Model Binding, and Razor basics | ✅ Completedg |
 
 ---
 
 ## 📚 Syllabus & Roadmap
 
 ### 🟢 Phase 1: C# & ASP.NET Fundamentals (The Revision)
-- [ ] **C# Deep Dive:** Generics, LINQ, Async/Await, and Memory Management (GC).
-- [ ] **ASP.NET (Classic):** Page Lifecycle, State Management (Session, ViewState), and HTTP Handlers.
-- [ ] **MVC Architecture:** Controllers, Views (Razor), and Model Binding.
-- [ ] **Entity Framework:** DBContext, Object State Manager, and Lazy vs. Eager Loading.
+- [x] **C# Deep Dive:** Generics, LINQ, Async/Await, and Memory Management (GC).
+- [x] **ASP.NET (Classic):** Page Lifecycle, State Management (Session, ViewState), and HTTP Handlers.
+- [x] **MVC Architecture:** Controllers, Views (Razor), and Model Binding.
+- x ] **Entity Framework:** DBContext, Object State Manager, and Lazy vs. Eager Loading.
 
 ### 🔵 Phase 2: The Modern Era (ASP.NET Core)
-- [ ] **Core Foundations:** The Unified `Program.cs`, Dependency Injection (DI), and Middleware.
-- [ ] **EF Core:** Migrations, Shadow Properties, and Performance Tuning (`AsNoTracking`).
-- [ ] **Web API:** RESTful principles, Minimal APIs, and JWT Authentication/Security.
+- [x] **Core Foundations:** The Unified `Program.cs`, Dependency Injection (DI), and Middleware.
+- [x] **EF Core:** Migrations, Shadow Properties, and Performance Tuning (`AsNoTracking`).
+- [x] **Web API:** RESTful principles, Minimal APIs, and JWT Authentication/Security.
 
 ### 🟣 Phase 3: The Frontend & Transition (Blazor)
 - [ ] **Blazor Fundamentals:** WebAssembly (WASM) vs. Server-side rendering.
