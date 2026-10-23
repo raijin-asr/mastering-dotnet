@@ -1,0 +1,10 @@
+﻿namespace PracticeSandBox.Models
+{
+    public class Product
+    {
+        public int Id { get; set; } // Primary Key
+        public string ProductName { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public int StockLevel { get; set; }
+    }
+}

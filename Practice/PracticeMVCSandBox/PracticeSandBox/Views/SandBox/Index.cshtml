@@ -1,0 +1,17 @@
+﻿@model PracticeSandBox.Models.ProductDetailViewModel
+
+@{
+    ViewData["Title"] = "ViewModel SandBox Test";
+}
+
+<div >
+    <h2>@Model.ProductName</h2>
+    <p><strong>Price: </strong>@Model.Price</p>
+    <p>@Model.StockLevel Units available</p>
+    @if (Model.IsOnSale)
+    {
+        <span>On Sales!</span>
+    }
+    <hr/>
+
+</div>
