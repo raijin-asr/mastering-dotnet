@@ -1,0 +1,90 @@
+﻿```cshtml
+@model PracticeSandBox.Models.Product
+
+@{
+    ViewData["Title"] = "Delete Product";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-danger text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="bi bi-trash me-2"></i>
+                        Delete Product
+                    </h4>
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div class="text-center mb-4">
+                        <div class="text-danger mb-3">
+                            <i class="bi bi-exclamation-triangle display-3"></i>
+                        </div>
+
+                        <h5 class="fw-semibold">Are you sure?</h5>
+
+                        <p class="text-muted mb-0">
+                            You are about to permanently delete this product.
+                            This action cannot be undone.
+                        </p>
+                    </div>
+
+                    <hr />
+
+                    <h6 class="text-muted text-uppercase small mb-3">
+                        Product Details
+                    </h6>
+
+                    <dl class="row mb-4">
+                        <dt class="col-sm-5 text-muted">Product ID</dt>
+                        <dd class="col-sm-7 fw-medium">@Model.Id</dd>
+
+                        <dt class="col-sm-5 text-muted">Product Name</dt>
+                        <dd class="col-sm-7 fw-semibold">
+                            @Model.ProductName
+                        </dd>
+
+                        <dt class="col-sm-5 text-muted">Price</dt>
+                        <dd class="col-sm-7">
+                            @Model.Price.ToString("C")
+                        </dd>
+
+                        <dt class="col-sm-5 text-muted">Stock Level</dt>
+                        <dd class="col-sm-7">@Model.StockLevel</dd>
+                    </dl>
+
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="d-flex flex-column flex-sm-row
+                                    justify-content-end gap-2">
+
+                            <a asp-action="Index"
+                               class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>
+                                Cancel
+                            </a>
+
+                            <button type="submit"
+                                    class="btn btn-danger">
+                                <i class="bi bi-trash me-1"></i>
+                                Confirm Delete
+                            </button>
+
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+            <p class="text-center text-muted small mt-3">
+                Please verify the product details before confirming.
+            </p>
+
+        </div>
+    </div>
+</div>
+```

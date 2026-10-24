@@ -29,6 +29,7 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=SandBox}/{action=Index}/{id?}"); //shows Index with Proudcts list
+    //pattern: "{controller=Home}/{action=Index}/{id?}"); //show Default Home page
 
 app.Run();

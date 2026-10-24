@@ -2,8 +2,10 @@
 
 namespace PracticeSandBox.Models
 {
-    public class ProductUpdateViewModel
+    public class ProductFormViewModel
     {
+        public int Id { get; set; }
+
         [Required(ErrorMessage = "Product name is required!")]
         [StringLength(50, ErrorMessage = "Product name cannot exceed 50 characters")]
         public string ProductName { get; set; }

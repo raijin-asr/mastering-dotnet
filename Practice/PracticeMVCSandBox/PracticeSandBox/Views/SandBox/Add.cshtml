@@ -1,24 +1,22 @@
-﻿@model PracticeSandBox.Models.ProductUpdateViewModel
+﻿@model PracticeSandBox.Models.ProductFormViewModel
 
 @{
-    ViewData["Title"] = "Form Submission Sandbox";
+    ViewData["Title"] = "Add Product";
 }
 
 <div style="font-family: Arial, sans-serif; margin: 40px;">
-    <h2>[HttpPost] Form Sandbox Test</h2>
-    <p>Testing user input sent back to the Controller.</p>
-    <hr />
+    <h2>Add New Product</h2>
 
     @if (!string.IsNullOrEmpty(Model.SuccessMessage))
     {
-        <div style="background-color: #d4edda; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 20px; max-width: 400px; border: 1px solid #c3e6cb;">
+        <div style="background-color: green; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 20px; max-width: 400px; border: 1px solid #c3e6cb;">
             <strong>Success!</strong> @Model.SuccessMessage
         </div>
     }
 
     <div asp-validation-summary="All" style="color:red"></div>
 
-    <form asp-action="Update" method="post">
+    <form asp-action="Add" method="post">
         <div>
             <label>Name:</label>
             <input asp-for="ProductName"/>
@@ -34,7 +32,5 @@
             <input asp-for="StockLevel"/>
             <span asp-validation-for="StockLevel" style="color:blue"></span>
         </div>
-        <button type="submit">
-            Update
-        </button>
+        <button type="submit">Add</button>
     </form>
