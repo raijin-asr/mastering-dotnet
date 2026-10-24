@@ -15,7 +15,7 @@ namespace PracticeSandBox.Controllers
             _context = context;
 
             //This creates sandbox.db automatically if doesn't exist
-            _context.Database.EnsureCreated();
+            //_context.Database.EnsureCreated();
         }
 
 
