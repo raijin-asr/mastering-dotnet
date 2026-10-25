@@ -22,6 +22,25 @@
     <div class="card shadow-sm">
         <div class="card-body">
 
+            <form asp-action="Index" method="get" class="mb-4">
+                <div class="input-group">
+                    <input type="text"
+                           name="searchString"
+                           value="@ViewData["CurrentFilter"]"
+                           class="form-control"
+                           placeholder="Search products by name..." />
+
+                    <button type="submit" class="btn btn-primary">
+                        Search
+                    </button>
+
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        Clear
+                    </a>
+                </div>
+            </form>
+
+
             @if (Model == null || !Model.Any())
             {
                 <div class="text-center py-5">
@@ -41,8 +60,49 @@
                         <thead class="table-light">
                             <tr>
                                 <th>ID</th>
-                                <th>Product Name</th>
-                                <th>Price</th>
+
+                                <th>
+                                    <a asp-action="Index"
+                                       asp-route-searchString="@ViewData["CurrentFilter"]"
+                                       asp-route-sortOrder="@ViewData["NameSortParm"]"
+                                       class="text-decoration-none text-dark">
+                                        Product Name
+                                        @if (ViewData["CurrentSort"]?.ToString() == "name_asc")
+                                        {
+                                            <span>↑</span>
+                                        }
+                                        else if (ViewData["CurrentSort"]?.ToString() == "name_desc")
+                                        {
+                                            <span>↓</span>
+                                        }
+                                        else
+                                        {
+                                            <span>↕</span>
+                                        }
+                                    </a>
+                                </th>
+
+                                <th>
+                                    <a asp-action="Index"
+                                       asp-route-searchString="@ViewData["CurrentFilter"]"
+                                       asp-route-sortOrder="@ViewData["PriceSortParm"]"
+                                       class="text-decoration-none text-dark">
+                                        Price
+                                        @if (ViewData["CurrentSort"]?.ToString() == "price_asc")
+                                        {
+                                            <span>↑</span>
+                                        }
+                                        else if (ViewData["CurrentSort"]?.ToString() == "price_desc")
+                                        {
+                                            <span>↓</span>
+                                        }
+                                        else
+                                        {
+                                            <span>↕</span>
+                                        }
+                                    </a>
+                                </th>
+                               
                                 <th>Stock</th>
                                 <th style="min-width: 280px;">Actions</th>
                             </tr>

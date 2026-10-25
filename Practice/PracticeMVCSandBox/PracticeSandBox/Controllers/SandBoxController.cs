@@ -19,13 +19,54 @@ namespace PracticeSandBox.Controllers
         }
 
 
-        //GET: /SandBox/Index to show list of Products
-        public async Task<IActionResult> Index() //or could just use GetAllProducts() method
+        //GET: /SandBox/Index OR /SandBox/?searchString=value&sortOrder=value
+        public async Task<IActionResult> Index(string? searchString, string? sortOrder) //or could just use GetAllProducts() method
         {
-            var products = await _context.Products.ToListAsync();
+            //ViewData is a dictionary that lets your controller pass data to its view for the current request.
+            ViewData["CurrentSort"] = sortOrder; 
+            ViewData["CurrentFilter"] = searchString; //"CurrentFilter" is simply a key that you chose or put anything 
 
-            return View(products);
-            //return View("Index", products); //or use Index.cshtml view
+            var products = _context.Products.AsQueryable(); //no await and AsQueryable() lets us build a database query incrementally.
+
+            // 1. Filter products by name
+            if (!string.IsNullOrWhiteSpace(searchString))
+            {
+                products = products.Where(p =>
+                    p.ProductName.ToLower().Contains(searchString.ToLower()));
+            }
+
+            // 2. Sort filtered Products
+            // Determine the next sort direction when a heading is clicked
+            ViewData["NameSortParm"] =
+                sortOrder == "name_asc" ? "name_desc" : "name_asc";
+
+            ViewData["PriceSortParm"] =
+                sortOrder == "price_asc" ? "price_desc" : "price_asc";
+
+            switch (sortOrder)
+            {
+                case "name_asc":
+                    products = products.OrderBy(p => p.ProductName);
+                    break;
+
+                case "name_desc":
+                    products = products.OrderByDescending(p => p.ProductName);
+                    break;
+
+                case "price_asc":
+                    products = products.OrderBy(p => (double)p.Price); //here double casting as sqlite does not support decimal price ordering
+                    break;
+
+                case "price_desc":
+                    products = products.OrderByDescending(p => (double)p.Price);
+                    break;
+
+                default:
+                    products = products.OrderBy(p => p.ProductName);
+                    break;
+            }
+
+            return View(await products.ToListAsync());
         }
 
         #region Add
