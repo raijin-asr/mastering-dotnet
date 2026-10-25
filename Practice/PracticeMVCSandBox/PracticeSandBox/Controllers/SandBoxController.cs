@@ -20,8 +20,14 @@ namespace PracticeSandBox.Controllers
 
 
         //GET: /SandBox/Index OR /SandBox/?searchString=value&sortOrder=value
-        public async Task<IActionResult> Index(string? searchString, string? sortOrder) //or could just use GetAllProducts() method
+        public async Task<IActionResult> Index(
+            string? searchString,
+            string? sortOrder,
+            int page = 1
+            ) //or could just use GetAllProducts() method
         {
+            const int pageSize = 5;
+
             //ViewData is a dictionary that lets your controller pass data to its view for the current request.
             ViewData["CurrentSort"] = sortOrder; 
             ViewData["CurrentFilter"] = searchString; //"CurrentFilter" is simply a key that you chose or put anything 
@@ -35,7 +41,20 @@ namespace PracticeSandBox.Controllers
                     p.ProductName.ToLower().Contains(searchString.ToLower()));
             }
 
-            // 2. Sort filtered Products
+            // First count matching products before Pagination
+            int totalProducts = await products.CountAsync();
+
+            int totalPages = (int)Math.Ceiling(
+                totalProducts / (double)pageSize);
+
+            //Keep requested page within valid bounds
+            if (page < 1) page = 1;
+
+            if (totalPages > 0 && page > totalPages)
+                page = totalPages;
+
+
+            // 3. Sort filtered Products
             // Determine the next sort direction when a heading is clicked
             ViewData["NameSortParm"] =
                 sortOrder == "name_asc" ? "name_desc" : "name_asc";
@@ -66,7 +85,18 @@ namespace PracticeSandBox.Controllers
                     break;
             }
 
-            return View(await products.ToListAsync());
+            // 4. Get only products for requested page
+            var pagedProducts = await products.
+                 Skip((page - 1) * pageSize)
+                 .Take(pageSize)
+                 .ToListAsync();
+
+            // 5. Send pagination info to view
+            ViewData["CurrentPage"] = page;
+            ViewData["TotalPages"] = totalPages;
+            ViewData["TotalProducts"] = totalProducts;
+
+            return View(pagedProducts);
         }
 
         #region Add

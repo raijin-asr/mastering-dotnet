@@ -163,6 +163,64 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Pagination -->
+                
+                int currentPage = (int)ViewData["CurrentPage"]!;
+                int totalPages = (int)ViewData["TotalPages"]!;
+                int totalProducts = (int)ViewData["TotalProducts"]!;
+                
+
+                @if (totalPages > 1)
+                {
+                    <nav aria-label="Product pages" class="mt-4">
+                        <ul class="pagination justify-content-center">
+
+                            <!-- Previous -->
+                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-page="@(currentPage - 1)"
+                                   asp-route-searchString="@ViewData["CurrentFilter"]"
+                                   asp-route-sortOrder="@ViewData["CurrentSort"]">
+                                    Previous
+                                </a>
+                            </li>
+
+                            <!-- Page numbers -->
+                            @for (int i = 1; i <= totalPages; i++)
+                            {
+                                <li class="page-item @(i == currentPage ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-action="Index"
+                                       asp-route-page="@i"
+                                       asp-route-searchString="@ViewData["CurrentFilter"]"
+                                       asp-route-sortOrder="@ViewData["CurrentSort"]">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            <!-- Next -->
+                            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-page="@(currentPage + 1)"
+                                   asp-route-searchString="@ViewData["CurrentFilter"]"
+                                   asp-route-sortOrder="@ViewData["CurrentSort"]">
+                                    Next
+                                </a>
+                            </li>
+
+                        </ul>
+                    </nav>
+                }
+
+                <p class="text-muted small text-center">
+                    Page @currentPage of @totalPages
+                    &mdash;
+                    @totalProducts products found
+                </p>
             }
 
         </div>
