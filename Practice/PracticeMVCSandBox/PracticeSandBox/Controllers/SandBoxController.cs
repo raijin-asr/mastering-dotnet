@@ -28,40 +28,35 @@ namespace PracticeSandBox.Controllers
         {
             const int pageSize = 5;
 
-            //ViewData is a dictionary that lets your controller pass data to its view for the current request.
-            ViewData["CurrentSort"] = sortOrder; 
-            ViewData["CurrentFilter"] = searchString; //"CurrentFilter" is simply a key that you chose or put anything 
-
             var products = _context.Products.AsQueryable(); //no await and AsQueryable() lets us build a database query incrementally.
 
-            // 1. Filter products by name
+            // 1. Search and Filter products by name
             if (!string.IsNullOrWhiteSpace(searchString))
             {
                 products = products.Where(p =>
                     p.ProductName.ToLower().Contains(searchString.ToLower()));
             }
 
-            // First count matching products before Pagination
+            //2.  First count matching products before Pagination
             int totalProducts = await products.CountAsync();
 
             int totalPages = (int)Math.Ceiling(
                 totalProducts / (double)pageSize);
 
-            //Keep requested page within valid bounds
+            //3. Keep requested page within valid bounds
             if (page < 1) page = 1;
 
             if (totalPages > 0 && page > totalPages)
                 page = totalPages;
 
-
-            // 3. Sort filtered Products
-            // Determine the next sort direction when a heading is clicked
-            ViewData["NameSortParm"] =
+            // 4. Determine sorting paramters for the next sort direction when a heading is clicked
+            string nameSortParam =
                 sortOrder == "name_asc" ? "name_desc" : "name_asc";
 
-            ViewData["PriceSortParm"] =
+            string priceSortParam =
                 sortOrder == "price_asc" ? "price_desc" : "price_asc";
 
+            //5. Sort before Pagination
             switch (sortOrder)
             {
                 case "name_asc":
@@ -73,11 +68,11 @@ namespace PracticeSandBox.Controllers
                     break;
 
                 case "price_asc":
-                    products = products.OrderBy(p => (double)p.Price); //here double casting as sqlite does not support decimal price ordering
+                    products = products.OrderBy(p => (double)p.Price).ThenBy(p => p.Id); //here double casting as sqlite does not support decimal price ordering
                     break;
 
                 case "price_desc":
-                    products = products.OrderByDescending(p => (double)p.Price);
+                    products = products.OrderByDescending(p => (double)p.Price).ThenBy(p => p.Id); 
                     break;
 
                 default:
@@ -91,12 +86,20 @@ namespace PracticeSandBox.Controllers
                  .Take(pageSize)
                  .ToListAsync();
 
-            // 5. Send pagination info to view
-            ViewData["CurrentPage"] = page;
-            ViewData["TotalPages"] = totalPages;
-            ViewData["TotalProducts"] = totalProducts;
+            // 5. Build ViewModel
+            var viewModel = new ProductListViewModel
+            {
+                Products = pagedProducts,
+                CurrentPage = page,
+                TotalPages = totalPages,
+                TotalProducts = totalProducts,
+                SearchString = searchString,
+                SortOrder = sortOrder,
+                NameSortParam = nameSortParam,
+                PriceSortParam = priceSortParam
+            };
 
-            return View(pagedProducts);
+            return View(viewModel);
         }
 
         #region Add
