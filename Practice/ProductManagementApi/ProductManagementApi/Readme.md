@@ -25,6 +25,10 @@ This project is part of my .NET learning journey, following my ASP.NET Core MVC 
 - Interactive API testing with Swagger
 - Asynchronous database operations
 
+## ScreenShots
+<img width="1727" height="847" alt="image" src="https://github.com/user-attachments/assets/e7080cee-7c14-4213-9246-d032580fb64b" />
+
+
 ## Project Structure
 
 ```text
@@ -56,7 +60,7 @@ Make sure you have the following installed:
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repository-url>
+git clone <this-repository-url>
 ```
 
 Navigate to the folder containing `ProductManagementApi.csproj`:
