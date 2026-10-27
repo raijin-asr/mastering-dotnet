@@ -29,6 +29,23 @@ This application provides a simple interface for managing products and inventory
 - Bootstrap
 - Git and GitHub
 
+## Screenshots
+
+  <img width="1762" height="1001" alt="image" src="https://github.com/user-attachments/assets/8311fe43-d5a9-4620-9ae6-af95711d4b5d" />
+- Fig 1: Home Page showing all Products (with Search, Sorting and Pagination)
+___
+<img width="1467" height="971" alt="image" src="https://github.com/user-attachments/assets/bdef8dfc-3e2d-4ed9-909e-561f77d1e520" />
+
+- Fig 2: Add Product Page
+
+<img width="1226" height="977" alt="image" src="https://github.com/user-attachments/assets/2e3c3f81-0bf3-48d8-8693-f6fdad031612" />
+
+- Fig 3: Edit Product Page
+
+<img width="1362" height="982" alt="image" src="https://github.com/user-attachments/assets/8b8a5cdf-177c-4116-8ce7-cbfe26b3c4bc" />
+
+- Fig 4: Delete Product Page
+
 ## Project Structure
 
 - `Controllers/` — Handles incoming requests and application flow.
@@ -86,8 +103,6 @@ The SQLite database is created locally when the migrations are applied. The data
 ## Learning Journey
 
 This project is part of my ongoing ASP.NET Core learning journey. The original learning repository contains the broader practice history and theory notes.
-
-**Original learning repository(its private, will make it public):** [https://github.com/raijin-asr/mastering-dotnet/tree/master/Practice/PracticeMVCSandBox]
 
 ## Future Improvements
 
