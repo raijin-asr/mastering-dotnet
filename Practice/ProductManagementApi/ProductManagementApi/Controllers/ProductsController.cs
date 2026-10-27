@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProductManagementApi.Models;
+using Microsoft.EntityFrameworkCore;
+using ProductManagementApi.Data;
 
 namespace ProductManagementApi.Controllers
 {
@@ -7,47 +9,42 @@ namespace ProductManagementApi.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        //without Database, hardcoded Product data practice first using in-memory list
-        public static readonly List<Product> _products = new() //store our temporary product data in memory, here static let all controller of this class, not each individual share same list while application is running
-        {
-            new Product //this new possible because list is mutable
-            {
-                Id = 1,
-                ProductName = "Mobile",
-                Price = 19,
-                StockLevel = 10
-            },
-            new Product
-            {
-                Id = 2,
-                ProductName = "Charger",
-                Price = 5,
-                StockLevel = 20
-            },
-        };
+        private readonly AppDbContext _context;
 
-        [HttpGet]  // /api/Products
-        public ActionResult<IEnumerable<Product>> GetAll() //here IEnumerable for read-only uneditable data, as IEnumerable<T> is the base interface for almost all collections in .NET. It doesn't store data itself; it simply represents a sequence of data that you can loop through (using a foreach loop).
+        // constructor dependency injection
+        public ProductsController(AppDbContext context)
         {
-            return Ok(_products); //returns HTTP 200 OK with the products in the response body.
+            _context = context;
         }
 
-        [HttpGet("{id:int}")]  // -> /api/Products/id
-        public ActionResult<Product> GetById(int id) 
+        [HttpGet]  // /api/Products
+        public async Task<ActionResult<IEnumerable<Product>>> GetAll()
         {
-            var product = _products.FirstOrDefault(p => p.Id == id);
+            var products = await _context.Products.ToListAsync();
 
-            if(product is null) return NotFound();
+            return Ok(products);
+        }
+
+
+        [HttpGet("{id:int}")]  // -> /api/Products/id
+        public async Task<ActionResult<Product>> GetById(int id)
+        {
+            var product = await _context.Products.FindAsync(id);
+
+            if (product is null)
+            {
+                return NotFound();
+            }
 
             return Ok(product);
         }
 
         [HttpPost]  //api/products
-        public ActionResult<Product> Create(Product product)
+        public async Task<ActionResult<Product>> Create(Product product)
         {
-            product.Id = _products.Max(p => p.Id) + 1; // manually increase id by
+            _context.Products.Add(product);
 
-            _products.Add(product);
+            await _context.SaveChangesAsync();
 
             return CreatedAtAction( // returns HTTP 201 Created, along with the created product and a URL pointing to its GetById endpoint.
                 nameof(GetById),
@@ -58,35 +55,39 @@ namespace ProductManagementApi.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public IActionResult Update(int id, Product updatedProduct) //id is from URL to identify product
+        public async Task<IActionResult> Update(
+            int id,
+            Product updatedProduct)
         {
-            var product = _products.FirstOrDefault(p => p.Id == id);
+            var product = await _context.Products.FindAsync(id);
 
             if (product is null)
             {
                 return NotFound();
             }
 
-            // Do not replace existing product's ID with the ID from the JSON body
             product.ProductName = updatedProduct.ProductName;
             product.Price = updatedProduct.Price;
             product.StockLevel = updatedProduct.StockLevel;
 
-            return NoContent(); //returns HTTP 204 to indicate that the update succeeded without a response body.
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
 
         [HttpDelete("{id:int}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var product = _products.FirstOrDefault(p => p.Id == id);
+            var product = await _context.Products.FindAsync(id);
 
             if (product is null)
             {
                 return NotFound();
             }
-            
-            //here since its in-memory list, no need of JSON body as ID of url identifies product to delete
-            _products.Remove(product);
+
+            _context.Products.Remove(product);
+
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
