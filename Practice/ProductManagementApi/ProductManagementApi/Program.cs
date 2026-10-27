@@ -1,7 +1,14 @@
+using Microsoft.EntityFrameworkCore;
+using ProductManagementApi.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container used without the MVC view-rendering features.
 builder.Services.AddControllers();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite(
+        builder.Configuration.GetConnectionString("DefaultConnection")));
 
 //Register Swagger services
 builder.Services.AddEndpointsApiExplorer(); //Makes endpoint metadata available to API description tooling.
