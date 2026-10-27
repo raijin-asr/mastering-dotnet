@@ -56,5 +56,39 @@ namespace ProductManagementApi.Controllers
                 );
 
         }
+
+        [HttpPut("{id:int}")]
+        public IActionResult Update(int id, Product updatedProduct) //id is from URL to identify product
+        {
+            var product = _products.FirstOrDefault(p => p.Id == id);
+
+            if (product is null)
+            {
+                return NotFound();
+            }
+
+            // Do not replace existing product's ID with the ID from the JSON body
+            product.ProductName = updatedProduct.ProductName;
+            product.Price = updatedProduct.Price;
+            product.StockLevel = updatedProduct.StockLevel;
+
+            return NoContent(); //returns HTTP 204 to indicate that the update succeeded without a response body.
+        }
+
+        [HttpDelete("{id:int}")]
+        public IActionResult Delete(int id)
+        {
+            var product = _products.FirstOrDefault(p => p.Id == id);
+
+            if (product is null)
+            {
+                return NotFound();
+            }
+            
+            //here since its in-memory list, no need of JSON body as ID of url identifies product to delete
+            _products.Remove(product);
+
+            return NoContent();
+        }
     }
 }
