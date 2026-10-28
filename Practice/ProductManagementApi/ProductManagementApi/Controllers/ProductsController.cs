@@ -2,6 +2,7 @@
 using ProductManagementApi.Models;
 using Microsoft.EntityFrameworkCore;
 using ProductManagementApi.Data;
+using ProductManagementApi.DTOs;
 
 namespace ProductManagementApi.Controllers
 {
@@ -11,6 +12,18 @@ namespace ProductManagementApi.Controllers
     {
         private readonly AppDbContext _context;
 
+        //mapping method to convert a database Product entity into the response DTO
+        private static ProductResponseDto ToResponseDto(Product product)
+        {
+            return new ProductResponseDto
+            {
+                Id = product.Id,
+                ProductName = product.ProductName,
+                Price = product.Price,
+                StockLevel = product.StockLevel
+            };
+        }
+
         // constructor dependency injection
         public ProductsController(AppDbContext context)
         {
@@ -18,16 +31,18 @@ namespace ProductManagementApi.Controllers
         }
 
         [HttpGet]  // /api/Products
-        public async Task<ActionResult<IEnumerable<Product>>> GetAll()
+        public async Task<ActionResult<IEnumerable<ProductResponseDto>>> GetAll()
         {
             var products = await _context.Products.ToListAsync();
 
-            return Ok(products);
+            var result = products.Select(ToResponseDto).ToList();
+
+            return Ok(result);
         }
 
 
         [HttpGet("{id:int}")]  // -> /api/Products/id
-        public async Task<ActionResult<Product>> GetById(int id)
+        public async Task<ActionResult<ProductResponseDto>> GetById(int id)
         {
             var product = await _context.Products.FindAsync(id);
 
@@ -36,28 +51,35 @@ namespace ProductManagementApi.Controllers
                 return NotFound();
             }
 
-            return Ok(product);
+            return Ok(ToResponseDto(product));
         }
 
         [HttpPost]  //api/products
-        public async Task<ActionResult<Product>> Create(Product product)
+        public async Task<ActionResult<ProductResponseDto>> Create(CreateProductDto dto)
         {
-            _context.Products.Add(product);
+            var product = new Product
+            {
+                ProductName = dto.ProductName,
+                Price = dto.Price,
+                StockLevel = dto.StockLevel
+            };
 
+            _context.Products.Add(product);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction( // returns HTTP 201 Created, along with the created product and a URL pointing to its GetById endpoint.
+            var response = ToResponseDto(product);
+
+            return CreatedAtAction(
                 nameof(GetById),
                 new { id = product.Id },
-                product
-                );
-
+                response
+            );
         }
 
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(
             int id,
-            Product updatedProduct)
+            UpdateProductDto dto)
         {
             var product = await _context.Products.FindAsync(id);
 
@@ -66,9 +88,9 @@ namespace ProductManagementApi.Controllers
                 return NotFound();
             }
 
-            product.ProductName = updatedProduct.ProductName;
-            product.Price = updatedProduct.Price;
-            product.StockLevel = updatedProduct.StockLevel;
+            product.ProductName = dto.ProductName;
+            product.Price = dto.Price;
+            product.StockLevel = dto.StockLevel;
 
             await _context.SaveChangesAsync();
 
