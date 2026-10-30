@@ -27,7 +27,10 @@ This project is part of my .NET learning journey, following my ASP.NET Core MVC 
 
 ## ScreenShots
 <img width="1727" height="847" alt="image" src="https://github.com/user-attachments/assets/e7080cee-7c14-4213-9246-d032580fb64b" />
+Fig 1: All HTTP method of Products
 
+<img width="1167" height="977" alt="image" src="https://github.com/user-attachments/assets/605493a9-8eba-4aed-8f77-cd92e8d6aeae" />
+Fig 2: Search, Sorting and Pagination in GET method
 
 ## Project Structure
 
