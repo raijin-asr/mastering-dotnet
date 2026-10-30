@@ -31,13 +31,54 @@ namespace ProductManagementApi.Controllers
         }
 
         [HttpGet]  // /api/Products
-        public async Task<ActionResult<IEnumerable<ProductResponseDto>>> GetAll()
+        public async Task<ActionResult<IEnumerable<ProductResponseDto>>> GetAll(
+            [FromQuery] string? search, //read serach value from URL query string as FromBody tells where value comes from
+            [FromQuery] string? sortBy,
+            [FromQuery] bool descending = false
+            )
         {
-            var products = await _context.Products.ToListAsync();
+            // starts building database query but doesn't get data immediately
+            var query = _context.Products.AsQueryable();// no await as it has no GetAwaiter method
 
-            var result = products.Select(ToResponseDto).ToList();
+            //Search
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(p => p.ProductName.Contains(search));
 
-            return Ok(result);
+                //also can be used LIKE to handle ToLower()
+                //query = query.Where(p => EF.Functions.Like(p.ProductName, $"%{search}%"));
+
+            }
+
+            // Sorting
+            var sort = sortBy?.ToLowerInvariant();
+
+            if (sort == "price")
+            {
+                // SQLite doesn't support ORDER BY decimal through this EF Core provider.
+                // Retrieve the filtered records, then sort them in C#.
+                var products = await query.ToListAsync();
+
+                products = descending
+                    ? products.OrderByDescending(p => p.Price).ToList()
+                    : products.OrderBy(p => p.Price).ToList();
+
+                return Ok(products.Select(ToResponseDto).ToList());
+            }
+
+            query = (sort, descending) switch
+            {
+                ("productname", false) => query.OrderBy(p => p.ProductName),
+                ("productname", true) => query.OrderByDescending(p => p.ProductName),
+                ("stocklevel", false) => query.OrderBy(p => p.StockLevel),
+                ("stocklevel", true) => query.OrderByDescending(p => p.StockLevel),
+                (_, false) => query.OrderBy(p => p.Id),
+                (_, true) => query.OrderByDescending(p => p.Id)
+            };
+
+            var sortedProducts = await query.ToListAsync();
+
+            return Ok(sortedProducts.Select(ToResponseDto).ToList());
         }
 
 
