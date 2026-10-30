@@ -30,56 +30,90 @@ namespace ProductManagementApi.Controllers
             _context = context;
         }
 
-        [HttpGet]  // /api/Products
-        public async Task<ActionResult<IEnumerable<ProductResponseDto>>> GetAll(
-            [FromQuery] string? search, //read serach value from URL query string as FromBody tells where value comes from
-            [FromQuery] string? sortBy,
-            [FromQuery] bool descending = false
-            )
-        {
-            // starts building database query but doesn't get data immediately
-            var query = _context.Products.AsQueryable();// no await as it has no GetAwaiter method
 
-            //Search
+        [HttpGet]
+        public async Task<IActionResult> GetAll(
+            [FromQuery] string? search,
+            [FromQuery] string? sortBy,
+            [FromQuery] bool descending = false,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            // 1. Start building the database query
+            var query = _context.Products.AsQueryable();
+
+            // 2. Search
             if (!string.IsNullOrWhiteSpace(search))
             {
                 query = query.Where(p => p.ProductName.Contains(search));
-
-                //also can be used LIKE to handle ToLower()
-                //query = query.Where(p => EF.Functions.Like(p.ProductName, $"%{search}%"));
-
             }
 
-            // Sorting
+            // 3. Validate pagination values
+            page = Math.Max(page, 1);
+            pageSize = Math.Clamp(pageSize, 1, 100);
+
+            // Count matching products before pagination
+            var totalCount = await query.CountAsync();
+
+            // 4. Sorting
             var sort = sortBy?.ToLowerInvariant();
+
+            List<Product> products;
 
             if (sort == "price")
             {
-                // SQLite doesn't support ORDER BY decimal through this EF Core provider.
-                // Retrieve the filtered records, then sort them in C#.
-                var products = await query.ToListAsync();
+                // SQLite decimal sorting workaround:
+                // Sort matching records in C#.
+                var matchingProducts = await query.ToListAsync();
 
-                products = descending
-                    ? products.OrderByDescending(p => p.Price).ToList()
-                    : products.OrderBy(p => p.Price).ToList();
+                var sortedProducts = descending
+                    ? matchingProducts
+                        .OrderByDescending(p => p.Price)
+                        .ThenBy(p => p.Id)
+                    : matchingProducts
+                        .OrderBy(p => p.Price)
+                        .ThenBy(p => p.Id);
 
-                return Ok(products.Select(ToResponseDto).ToList());
+                // 5. Pagination after sorting
+                products = sortedProducts
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+            }
+            else
+            {
+                query = (sort, descending) switch
+                {
+                    ("productname", false) => query.OrderBy(p => p.ProductName),
+                    ("productname", true) => query.OrderByDescending(p => p.ProductName),
+                    ("stocklevel", false) => query.OrderBy(p => p.StockLevel),
+                    ("stocklevel", true) => query.OrderByDescending(p => p.StockLevel),
+                    (_, false) => query.OrderBy(p => p.Id),
+                    (_, true) => query.OrderByDescending(p => p.Id)
+                };
+
+                // Pagination happens in the database
+                products = await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
             }
 
-            query = (sort, descending) switch
+            // 6. Convert entities to response DTOs
+            var result = products.Select(ToResponseDto).ToList();
+
+            // 7. Return products and pagination metadata
+            return Ok(new
             {
-                ("productname", false) => query.OrderBy(p => p.ProductName),
-                ("productname", true) => query.OrderByDescending(p => p.ProductName),
-                ("stocklevel", false) => query.OrderBy(p => p.StockLevel),
-                ("stocklevel", true) => query.OrderByDescending(p => p.StockLevel),
-                (_, false) => query.OrderBy(p => p.Id),
-                (_, true) => query.OrderByDescending(p => p.Id)
-            };
-
-            var sortedProducts = await query.ToListAsync();
-
-            return Ok(sortedProducts.Select(ToResponseDto).ToList());
+                page,
+                pageSize,
+                totalCount,
+                totalPages = (int)Math.Ceiling(
+                    totalCount / (double)pageSize),
+                items = result
+            });
         }
+
 
 
         [HttpGet("{id:int}")]  // -> /api/Products/id
