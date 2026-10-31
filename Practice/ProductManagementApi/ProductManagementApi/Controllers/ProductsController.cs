@@ -32,7 +32,7 @@ namespace ProductManagementApi.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> GetAll(
+        public async Task<ActionResult<ProductListResponseDto>> GetAll(
             [FromQuery] string? search,
             [FromQuery] string? sortBy,
             [FromQuery] bool descending = false,
@@ -103,15 +103,17 @@ namespace ProductManagementApi.Controllers
             var result = products.Select(ToResponseDto).ToList();
 
             // 7. Return products and pagination metadata
-            return Ok(new
+            var response = new ProductListResponseDto
             {
-                page,
-                pageSize,
-                totalCount,
-                totalPages = (int)Math.Ceiling(
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = (int)Math.Ceiling(
                     totalCount / (double)pageSize),
-                items = result
-            });
+                Items = result
+            };
+
+            return Ok(response);
         }
 
 
@@ -183,6 +185,36 @@ namespace ProductManagementApi.Controllers
             }
 
             _context.Products.Remove(product);
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpPatch("{id:int}")]
+        public async Task<IActionResult> Patch(int id, PatchProductDto dto)
+        {
+            var product = await _context.Products.FindAsync(id);
+
+            if (product is null)
+            {
+                return NotFound();
+            }
+
+            if (dto.ProductName is not null)
+            {
+                product.ProductName = dto.ProductName;
+            }
+
+            if (dto.Price.HasValue)
+            {
+                product.Price = dto.Price.Value;
+            }
+
+            if (dto.StockLevel.HasValue)
+            {
+                product.StockLevel = dto.StockLevel.Value;
+            }
 
             await _context.SaveChangesAsync();
 
