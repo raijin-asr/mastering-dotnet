@@ -134,6 +134,18 @@ namespace ProductManagementApi.Controllers
         [HttpPost]  //api/products
         public async Task<ActionResult<ProductResponseDto>> Create(CreateProductDto dto)
         {
+            var nameExists = await _context.Products
+                .AnyAsync(p => p.ProductName.ToLower() == dto.ProductName.ToLower());
+
+            //If it exists, return 409 Conflict.
+            if (nameExists)
+            { 
+                return Conflict(new
+                {
+                    message = "A product with this name already exists."
+                });
+            }
+
             var product = new Product
             {
                 ProductName = dto.ProductName,
@@ -158,6 +170,19 @@ namespace ProductManagementApi.Controllers
             int id,
             UpdateProductDto dto)
         {
+            var nameExists = await _context.Products
+                .AnyAsync(p =>
+                    p.Id != id &&
+                    p.ProductName.ToLower() == dto.ProductName.ToLower());
+
+            if (nameExists)
+            {
+                return Conflict(new
+                {
+                    message = "A product with this name already exists."
+                });
+            }
+
             var product = await _context.Products.FindAsync(id);
 
             if (product is null)
@@ -194,6 +219,22 @@ namespace ProductManagementApi.Controllers
         [HttpPatch("{id:int}")]
         public async Task<IActionResult> Patch(int id, PatchProductDto dto)
         {
+            if (dto.ProductName is not null)
+            {
+                var nameExists = await _context.Products
+                    .AnyAsync(p =>
+                        p.Id != id &&
+                        p.ProductName.ToLower() == dto.ProductName.ToLower());
+
+                if (nameExists)
+                {
+                    return Conflict(new
+                    {
+                        message = "A product with this name already exists."
+                    });
+                }
+            }
+
             var product = await _context.Products.FindAsync(id);
 
             if (product is null)
