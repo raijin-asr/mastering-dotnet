@@ -3,6 +3,7 @@ using ProductManagementApi.Models;
 using Microsoft.EntityFrameworkCore;
 using ProductManagementApi.Data;
 using ProductManagementApi.DTOs;
+using Microsoft.Data.Sqlite;
 
 namespace ProductManagementApi.Controllers
 {
@@ -137,7 +138,7 @@ namespace ProductManagementApi.Controllers
             var nameExists = await _context.Products
                 .AnyAsync(p => p.ProductName.ToLower() == dto.ProductName.ToLower());
 
-            //If it exists, return 409 Conflict.
+            //If it exists, return 409 Conflict. This is ordinary duplicate check
             if (nameExists)
             { 
                 return Conflict(new
@@ -154,7 +155,20 @@ namespace ProductManagementApi.Controllers
             };
 
             _context.Products.Add(product);
-            await _context.SaveChangesAsync();
+
+            // Datebase level Exception Handling with helper method for duplicate
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+                when(IsUniqueConstraintViolation(ex))
+            {
+                return Conflict(new
+                {
+                    message = "A product with this name already exists."
+                });
+            }
 
             var response = ToResponseDto(product);
 
@@ -194,8 +208,18 @@ namespace ProductManagementApi.Controllers
             product.Price = dto.Price;
             product.StockLevel = dto.StockLevel;
 
-            await _context.SaveChangesAsync();
-
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+                when (IsUniqueConstraintViolation(ex))
+            {
+                return Conflict(new
+                {
+                    message = "A product with this name already exists."
+                });
+            }
             return NoContent();
         }
 
@@ -257,9 +281,28 @@ namespace ProductManagementApi.Controllers
                 product.StockLevel = dto.StockLevel.Value;
             }
 
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+                when (IsUniqueConstraintViolation(ex))
+            {
+                return Conflict(new
+                {
+                    message = "A product with this name already exists."
+                });
+            }
 
             return NoContent();
+            return NoContent();
+        }
+
+        // Handle database unique-constraint exceptions
+        private static bool IsUniqueConstraintViolation(DbUpdateException exception)
+        {
+            return exception.InnerException is SqliteException sqliteException
+                && sqliteException.SqliteExtendedErrorCode == 2067;
         }
     }
 }
