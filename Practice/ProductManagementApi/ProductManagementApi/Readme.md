@@ -1,6 +1,6 @@
 ﻿# Product Management API
 
-A RESTful Web API built with **ASP.NET Core 8**, **Entity Framework Core**, and **SQLite** to perform CRUD (Create, Read, Update, Delete) operations on products.
+A RESTful Web API built with **ASP.NET Core 8**, **Entity Framework Core**, and **SQLite** to perform CRUD (Create, Read, Update, Delete) operations on products (also Sort, Search and Pagination).
 
 This project is part of my .NET learning journey, following my ASP.NET Core MVC practice project. The goal is to understand Web API development, RESTful endpoints, database integration, and HTTP status codes.
 
@@ -19,6 +19,7 @@ This project is part of my .NET learning journey, following my ASP.NET Core MVC 
 - Retrieve a product by ID
 - Create a new product
 - Update an existing product
+- Partial Update 
 - Delete a product
 - Database integration using EF Core and SQLite
 - Database schema management using EF Core migrations
@@ -26,7 +27,7 @@ This project is part of my .NET learning journey, following my ASP.NET Core MVC 
 - Asynchronous database operations
 
 ## ScreenShots
-<img width="1387" height="1002" alt="image" src="https://github.com/user-attachments/assets/dbdd97fe-c29f-4425-883c-f801f4a6fd1c" />
+<img width="1342" height="977" alt="image" src="https://github.com/user-attachments/assets/10fd1346-4843-4d12-841a-f95feb1cd3af" />
 
 Fig 1: All HTTP method of Products
 
@@ -127,6 +128,7 @@ The base route is `/api/products`.
 | GET | `/api/products/{id}` | Retrieve a product by ID | `200 OK` |
 | POST | `/api/products` | Create a product | `201 Created` |
 | PUT | `/api/products/{id}` | Update a product | `204 No Content` |
+| PATCH | `/api/products/{id}` | Partial Update a product | `204 No Content` |
 | DELETE | `/api/products/{id}` | Delete a product | `204 No Content` |
 
 The API returns `404 Not Found` when a requested product does not exist.
