@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProductManagementApi.Data;
 
@@ -14,9 +15,33 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddEndpointsApiExplorer(); //Makes endpoint metadata available to API description tooling.
 builder.Services.AddSwaggerGen(); //Generates an OpenAPI description of your API.
 
+//standard format for communicating API errors.
+//Register built-in exception handling Service
+builder.Services.AddProblemDetails();
+
+//Configure automatic validation responses
+builder.Services.Configure<ApiBehaviorOptions>(options => // ApiBehavior Controls automatic behaviors provided by [ApiController]
+{
+    options.InvalidModelStateResponseFactory = context =>  //InvalidModelStateResponseFactory Allows to customize what ASP.NET Core returns when model validation fails.
+    {
+        var problemDetails = new ValidationProblemDetails(context.ModelState)
+        {
+            Status = StatusCodes.Status400BadRequest,
+            Title = "Validation Failed",
+            Detail = "One or more validation errors occurred."
+        };
+
+        return new BadRequestObjectResult(problemDetails);
+    };
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+
+//Register middlware to catch unhandled exceptions and generates an HTTP 500 response using Problem Details when possible.
+app.UseExceptionHandler();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

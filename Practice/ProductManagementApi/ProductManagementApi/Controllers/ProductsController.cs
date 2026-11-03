@@ -126,7 +126,12 @@ namespace ProductManagementApi.Controllers
 
             if (product is null)
             {
-                return NotFound();
+                //Creating consistent 404 response
+                return Problem(
+                    detail: $"Product with ID {id} was not found",
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Product Not Found"
+                    );
             }
 
             return Ok(ToResponseDto(product));
@@ -140,11 +145,11 @@ namespace ProductManagementApi.Controllers
 
             //If it exists, return 409 Conflict. This is ordinary duplicate check
             if (nameExists)
-            { 
-                return Conflict(new
-                {
-                    message = "A product with this name already exists."
-                });
+            {
+                return Problem(
+                    detail: "A product with this name already exists.",
+                    statusCode: StatusCodes.Status409Conflict,
+                    title: "Duplicate Product Name");
             }
 
             var product = new Product
@@ -164,10 +169,10 @@ namespace ProductManagementApi.Controllers
             catch (DbUpdateException ex)
                 when(IsUniqueConstraintViolation(ex))
             {
-                return Conflict(new
-                {
-                    message = "A product with this name already exists."
-                });
+                return Problem(
+                    detail: "A product with this name already exists.",
+                    statusCode: StatusCodes.Status409Conflict,
+                    title: "Duplicate Product Name");
             }
 
             var response = ToResponseDto(product);
@@ -191,10 +196,10 @@ namespace ProductManagementApi.Controllers
 
             if (nameExists)
             {
-                return Conflict(new
-                {
-                    message = "A product with this name already exists."
-                });
+                return Problem(
+                    detail: "A product with this name already exists.",
+                    statusCode: StatusCodes.Status409Conflict,
+                    title: "Duplicate Product Name");
             }
 
             var product = await _context.Products.FindAsync(id);
@@ -215,10 +220,10 @@ namespace ProductManagementApi.Controllers
             catch (DbUpdateException ex)
                 when (IsUniqueConstraintViolation(ex))
             {
-                return Conflict(new
-                {
-                    message = "A product with this name already exists."
-                });
+                return Problem(
+                    detail: "A product with this name already exists.",
+                    statusCode: StatusCodes.Status409Conflict,
+                    title: "Duplicate Product Name");
             }
             return NoContent();
         }
@@ -295,7 +300,6 @@ namespace ProductManagementApi.Controllers
             }
 
             return NoContent();
-            return NoContent();
         }
 
         // Handle database unique-constraint exceptions
@@ -303,6 +307,14 @@ namespace ProductManagementApi.Controllers
         {
             return exception.InnerException is SqliteException sqliteException
                 && sqliteException.SqliteExtendedErrorCode == 2067;
+        }
+
+
+        // test endpoints for Global Exception handling
+        [HttpGet("test-error")]
+        public IActionResult TestError()
+        {
+            throw new Exception("Testing global exception handling");
         }
     }
 }
