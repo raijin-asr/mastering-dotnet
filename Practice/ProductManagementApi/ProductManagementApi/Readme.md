@@ -26,7 +26,8 @@ This project is part of my .NET learning journey, following my ASP.NET Core MVC 
 - Asynchronous database operations
 
 ## ScreenShots
-<img width="1727" height="847" alt="image" src="https://github.com/user-attachments/assets/e7080cee-7c14-4213-9246-d032580fb64b" />
+<img width="1387" height="1002" alt="image" src="https://github.com/user-attachments/assets/dbdd97fe-c29f-4425-883c-f801f4a6fd1c" />
+
 Fig 1: All HTTP method of Products
 
 <img width="1167" height="977" alt="image" src="https://github.com/user-attachments/assets/605493a9-8eba-4aed-8f77-cd92e8d6aeae" />
