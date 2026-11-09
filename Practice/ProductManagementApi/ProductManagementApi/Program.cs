@@ -13,7 +13,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 //Register Swagger services
 builder.Services.AddEndpointsApiExplorer(); //Makes endpoint metadata available to API description tooling.
-builder.Services.AddSwaggerGen(); //Generates an OpenAPI description of your API.
+builder.Services.AddSwaggerGen(options => //Generates an OpenAPI description of API.
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "Product Management API",
+        Version = "v1",
+        Description = "A RESTful API for managing products. Developed by Ameer (aka Raijin)."
+    });
+});
 
 //standard format for communicating API errors.
 //Register built-in exception handling Service

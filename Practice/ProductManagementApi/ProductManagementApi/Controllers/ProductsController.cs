@@ -12,6 +12,7 @@ namespace ProductManagementApi.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<ProductsController> _logger;  //Logging service
 
         //mapping method to convert a database Product entity into the response DTO
         private static ProductResponseDto ToResponseDto(Product product)
@@ -26,9 +27,11 @@ namespace ProductManagementApi.Controllers
         }
 
         // constructor dependency injection
-        public ProductsController(AppDbContext context)
+        public ProductsController(AppDbContext context,
+            ILogger<ProductsController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
 
@@ -126,6 +129,11 @@ namespace ProductManagementApi.Controllers
 
             if (product is null)
             {
+                //Add logger message
+                _logger.LogWarning(
+                    "Product with ID {ProductId} was not found.",
+                    id);
+
                 //Creating consistent 404 response
                 return Problem(
                     detail: $"Product with ID {id} was not found",
@@ -165,6 +173,11 @@ namespace ProductManagementApi.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+
+                _logger.LogInformation(
+                    "Prodcuts {ProductID} was created successfully.",
+                    product.Id
+                    );
             }
             catch (DbUpdateException ex)
                 when(IsUniqueConstraintViolation(ex))
@@ -310,11 +323,5 @@ namespace ProductManagementApi.Controllers
         }
 
 
-        // test endpoints for Global Exception handling
-        [HttpGet("test-error")]
-        public IActionResult TestError()
-        {
-            throw new Exception("Testing global exception handling");
-        }
     }
 }
