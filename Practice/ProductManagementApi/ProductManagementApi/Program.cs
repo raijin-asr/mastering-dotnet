@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProductManagementApi.Data;
+using ProductManagementApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +43,9 @@ builder.Services.Configure<ApiBehaviorOptions>(options => // ApiBehavior Control
         return new BadRequestObjectResult(problemDetails);
     };
 });
+
+//Register service with DI
+builder.Services.AddScoped<IProductService, ProductService>();
 
 var app = builder.Build();
 

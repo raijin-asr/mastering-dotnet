@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using ProductManagementApi.Data;
 using ProductManagementApi.DTOs;
 using Microsoft.Data.Sqlite;
+using ProductManagementApi.Services;
 
 namespace ProductManagementApi.Controllers
 {
@@ -11,26 +12,19 @@ namespace ProductManagementApi.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly AppDbContext _context; //will remove this later
+
+        private readonly IProductService _productService; //Inject service instead of AppDbContext
         private readonly ILogger<ProductsController> _logger;  //Logging service
 
         //mapping method to convert a database Product entity into the response DTO
-        private static ProductResponseDto ToResponseDto(Product product)
-        {
-            return new ProductResponseDto
-            {
-                Id = product.Id,
-                ProductName = product.ProductName,
-                Price = product.Price,
-                StockLevel = product.StockLevel
-            };
-        }
+      
 
         // constructor dependency injection
-        public ProductsController(AppDbContext context,
+        public ProductsController(IProductService productService,
             ILogger<ProductsController> logger)
         {
-            _context = context;
+            _productService = productService;
             _logger = logger;
         }
 
@@ -43,79 +37,9 @@ namespace ProductManagementApi.Controllers
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10)
         {
-            // 1. Start building the database query
-            var query = _context.Products.AsQueryable();
-
-            // 2. Search
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                query = query.Where(p => p.ProductName.Contains(search));
-            }
-
-            // 3. Validate pagination values
-            page = Math.Max(page, 1);
-            pageSize = Math.Clamp(pageSize, 1, 100);
-
-            // Count matching products before pagination
-            var totalCount = await query.CountAsync();
-
-            // 4. Sorting
-            var sort = sortBy?.ToLowerInvariant();
-
-            List<Product> products;
-
-            if (sort == "price")
-            {
-                // SQLite decimal sorting workaround:
-                // Sort matching records in C#.
-                var matchingProducts = await query.ToListAsync();
-
-                var sortedProducts = descending
-                    ? matchingProducts
-                        .OrderByDescending(p => p.Price)
-                        .ThenBy(p => p.Id)
-                    : matchingProducts
-                        .OrderBy(p => p.Price)
-                        .ThenBy(p => p.Id);
-
-                // 5. Pagination after sorting
-                products = sortedProducts
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToList();
-            }
-            else
-            {
-                query = (sort, descending) switch
-                {
-                    ("productname", false) => query.OrderBy(p => p.ProductName),
-                    ("productname", true) => query.OrderByDescending(p => p.ProductName),
-                    ("stocklevel", false) => query.OrderBy(p => p.StockLevel),
-                    ("stocklevel", true) => query.OrderByDescending(p => p.StockLevel),
-                    (_, false) => query.OrderBy(p => p.Id),
-                    (_, true) => query.OrderByDescending(p => p.Id)
-                };
-
-                // Pagination happens in the database
-                products = await query
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToListAsync();
-            }
-
-            // 6. Convert entities to response DTOs
-            var result = products.Select(ToResponseDto).ToList();
-
-            // 7. Return products and pagination metadata
-            var response = new ProductListResponseDto
-            {
-                Page = page,
-                PageSize = pageSize,
-                TotalCount = totalCount,
-                TotalPages = (int)Math.Ceiling(
-                    totalCount / (double)pageSize),
-                Items = result
-            };
+            
+            var response = await _productService.GetAllAsync(
+                search, sortBy, descending, page, pageSize);
 
             return Ok(response);
         }
@@ -125,7 +49,7 @@ namespace ProductManagementApi.Controllers
         [HttpGet("{id:int}")]  // -> /api/Products/id
         public async Task<ActionResult<ProductResponseDto>> GetById(int id)
         {
-            var product = await _context.Products.FindAsync(id);
+            var product = await _productService.GetByIdAsync(id); //comunicate with service instead of directly to dbcontext
 
             if (product is null)
             {
@@ -142,7 +66,7 @@ namespace ProductManagementApi.Controllers
                     );
             }
 
-            return Ok(ToResponseDto(product));
+            return Ok(_productService.ToResponseDto(product));
         }
 
         [HttpPost]  //api/products
@@ -188,7 +112,7 @@ namespace ProductManagementApi.Controllers
                     title: "Duplicate Product Name");
             }
 
-            var response = ToResponseDto(product);
+            var response = _productService.ToResponseDto(product);
 
             return CreatedAtAction(
                 nameof(GetById),
