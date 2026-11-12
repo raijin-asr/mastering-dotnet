@@ -1,17 +1,21 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using ProductManagementApi.Data;
 using ProductManagementApi.DTOs;
 using ProductManagementApi.Models;
+using ProductManagementApi.Exceptions;
 
 namespace ProductManagementApi.Services;
 
 public class ProductService : IProductService
 {
     private readonly AppDbContext _context;
+    private readonly ILogger<ProductService> _logger;  //Logging service
 
-    public ProductService(AppDbContext context)
+    public ProductService(AppDbContext context, ILogger<ProductService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public ProductResponseDto ToResponseDto(Product product)
@@ -107,5 +111,86 @@ public class ProductService : IProductService
     {
         return await _context.Products
             .FirstOrDefaultAsync(p => p.Id == id);
+    }
+
+    public async Task<ProductResponseDto> CreateAsync(CreateProductDto dto)
+    {
+        var nameExists = await _context.Products
+                .AnyAsync(p => p.ProductName.ToLower() == dto.ProductName.ToLower());
+
+        //Since service knows product name is duplicated checked, so no need to check HTTP status code 409 
+        if (nameExists)
+        {
+            throw new DuplicateProductNameException();
+        }
+
+        var product = new Product
+        {
+            ProductName = dto.ProductName,
+            Price = dto.Price,
+            StockLevel = dto.StockLevel
+        };
+
+        _context.Products.Add(product);
+
+        // Datebase level Exception Handling with helper method for duplicate
+        try
+        {
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Prodcuts {ProductID} was created successfully.",
+                product.Id
+                );
+        }
+        catch (DbUpdateException ex)
+            when (IsUniqueConstraintViolation(ex))
+        {
+            throw new DuplicateProductNameException();
+        }
+
+        return ToResponseDto(product);
+    }
+
+    public async Task<bool> UpdateAsync(int id, UpdateProductDto dto)
+    {
+        var product = await _context.Products.FindAsync(id);
+        if (product is null) return false;
+
+        var nameExists = await _context.Products
+                .AnyAsync(p =>
+                    p.Id != id &&
+                    p.ProductName.ToLower() == dto.ProductName.ToLower());
+
+        if (nameExists)
+        {
+            throw new DuplicateProductNameException();
+        }
+
+        //Update Product Properties
+        product.ProductName = dto.ProductName;
+        product.Price = dto.Price;
+        product.StockLevel = dto.StockLevel;
+
+        //Save changes and handle database constraint
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+            when (IsUniqueConstraintViolation(ex))
+        {
+            throw new DuplicateProductNameException();
+        }
+
+        return true;
+    }
+
+
+    // Handle database unique-constraint exceptions
+    private static bool IsUniqueConstraintViolation(DbUpdateException exception)
+    {
+        return exception.InnerException is SqliteException sqliteException
+            && sqliteException.SqliteExtendedErrorCode == 2067;
     }
 }

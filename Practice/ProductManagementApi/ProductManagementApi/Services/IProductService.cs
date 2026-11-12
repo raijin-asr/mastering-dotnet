@@ -10,4 +10,7 @@ public interface IProductService
     string? search, string? sortBy, bool descending, int page, int pageSize);
 
     Task<Product?> GetByIdAsync(int id);
+
+    Task<ProductResponseDto> CreateAsync(CreateProductDto dto);
+    Task<bool> UpdateAsync(int id, UpdateProductDto dto);
 }

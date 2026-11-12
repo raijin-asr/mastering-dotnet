@@ -5,6 +5,7 @@ using ProductManagementApi.Data;
 using ProductManagementApi.DTOs;
 using Microsoft.Data.Sqlite;
 using ProductManagementApi.Services;
+using ProductManagementApi.Exceptions;
 
 namespace ProductManagementApi.Controllers
 {
@@ -14,11 +15,10 @@ namespace ProductManagementApi.Controllers
     {
         private readonly AppDbContext _context; //will remove this later
 
-        private readonly IProductService _productService; //Inject service instead of AppDbContext
+        private readonly IProductService _productService; //Inject service instead of AppDbContext      
+
         private readonly ILogger<ProductsController> _logger;  //Logging service
 
-        //mapping method to convert a database Product entity into the response DTO
-      
 
         // constructor dependency injection
         public ProductsController(IProductService productService,
@@ -72,53 +72,25 @@ namespace ProductManagementApi.Controllers
         [HttpPost]  //api/products
         public async Task<ActionResult<ProductResponseDto>> Create(CreateProductDto dto)
         {
-            var nameExists = await _context.Products
-                .AnyAsync(p => p.ProductName.ToLower() == dto.ProductName.ToLower());
-
-            //If it exists, return 409 Conflict. This is ordinary duplicate check
-            if (nameExists)
-            {
-                return Problem(
-                    detail: "A product with this name already exists.",
-                    statusCode: StatusCodes.Status409Conflict,
-                    title: "Duplicate Product Name");
-            }
-
-            var product = new Product
-            {
-                ProductName = dto.ProductName,
-                Price = dto.Price,
-                StockLevel = dto.StockLevel
-            };
-
-            _context.Products.Add(product);
-
-            // Datebase level Exception Handling with helper method for duplicate
             try
             {
-                await _context.SaveChangesAsync();
+                var response = await _productService.CreateAsync(dto);
 
-                _logger.LogInformation(
-                    "Prodcuts {ProductID} was created successfully.",
-                    product.Id
-                    );
+                return CreatedAtAction(
+                    nameof(GetById),
+                    new { id = response.Id },
+                    response
+                );
+
             }
-            catch (DbUpdateException ex)
-                when(IsUniqueConstraintViolation(ex))
+            catch (DuplicateProductNameException ex)
             {
                 return Problem(
-                    detail: "A product with this name already exists.",
+                    detail: ex.Message,
                     statusCode: StatusCodes.Status409Conflict,
-                    title: "Duplicate Product Name");
+                    title: "Duplicate Product Name"
+                    );
             }
-
-            var response = _productService.ToResponseDto(product);
-
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = product.Id },
-                response
-            );
         }
 
         [HttpPut("{id:int}")]
@@ -126,43 +98,30 @@ namespace ProductManagementApi.Controllers
             int id,
             UpdateProductDto dto)
         {
-            var nameExists = await _context.Products
-                .AnyAsync(p =>
-                    p.Id != id &&
-                    p.ProductName.ToLower() == dto.ProductName.ToLower());
-
-            if (nameExists)
-            {
-                return Problem(
-                    detail: "A product with this name already exists.",
-                    statusCode: StatusCodes.Status409Conflict,
-                    title: "Duplicate Product Name");
-            }
-
-            var product = await _context.Products.FindAsync(id);
-
-            if (product is null)
-            {
-                return NotFound();
-            }
-
-            product.ProductName = dto.ProductName;
-            product.Price = dto.Price;
-            product.StockLevel = dto.StockLevel;
-
             try
             {
-                await _context.SaveChangesAsync();
+                var updated = await _productService.UpdateAsync(id, dto);
+
+                if (!updated)
+                {
+                    return Problem(
+                        detail: $"Product with ID {id} was not found.",
+                        statusCode: StatusCodes.Status404NotFound,
+                        title: "Product Not Found");
+                }
+
+                return NoContent();
             }
-            catch (DbUpdateException ex)
-                when (IsUniqueConstraintViolation(ex))
+            catch (DuplicateProductNameException ex) 
             {
                 return Problem(
-                    detail: "A product with this name already exists.",
+                    detail: ex.Message,
                     statusCode: StatusCodes.Status409Conflict,
-                    title: "Duplicate Product Name");
+                    title: "Duplicate Product Name"
+                    );
             }
-            return NoContent();
+                
+                
         }
 
         [HttpDelete("{id:int}")]
@@ -239,13 +198,13 @@ namespace ProductManagementApi.Controllers
             return NoContent();
         }
 
+
         // Handle database unique-constraint exceptions
         private static bool IsUniqueConstraintViolation(DbUpdateException exception)
         {
             return exception.InnerException is SqliteException sqliteException
                 && sqliteException.SqliteExtendedErrorCode == 2067;
         }
-
 
     }
 }
