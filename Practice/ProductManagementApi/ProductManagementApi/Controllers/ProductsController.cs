@@ -1,11 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ProductManagementApi.Models;
-using Microsoft.EntityFrameworkCore;
-using ProductManagementApi.Data;
 using ProductManagementApi.DTOs;
-using Microsoft.Data.Sqlite;
-using ProductManagementApi.Services;
 using ProductManagementApi.Exceptions;
+using ProductManagementApi.Services;
 
 namespace ProductManagementApi.Controllers
 {
@@ -13,7 +9,6 @@ namespace ProductManagementApi.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly AppDbContext _context; //will remove this later
 
         private readonly IProductService _productService; //Inject service instead of AppDbContext      
 
@@ -127,16 +122,19 @@ namespace ProductManagementApi.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var product = await _context.Products.FindAsync(id);
+            var deleted = await _productService.DeleteAsync(id);
 
-            if (product is null)
+            if (!deleted)
             {
-                return NotFound();
+                return Problem(
+                    detail: $"Product with ID {id} was not found.",
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Product Not Found");
             }
 
-            _context.Products.Remove(product);
-
-            await _context.SaveChangesAsync();
+            _logger.LogInformation(
+                "Product {ProductId} was deleted successfully.",
+                id);
 
             return NoContent();
         }
@@ -144,66 +142,29 @@ namespace ProductManagementApi.Controllers
         [HttpPatch("{id:int}")]
         public async Task<IActionResult> Patch(int id, PatchProductDto dto)
         {
-            if (dto.ProductName is not null)
-            {
-                var nameExists = await _context.Products
-                    .AnyAsync(p =>
-                        p.Id != id &&
-                        p.ProductName.ToLower() == dto.ProductName.ToLower());
-
-                if (nameExists)
-                {
-                    return Conflict(new
-                    {
-                        message = "A product with this name already exists."
-                    });
-                }
-            }
-
-            var product = await _context.Products.FindAsync(id);
-
-            if (product is null)
-            {
-                return NotFound();
-            }
-
-            if (dto.ProductName is not null)
-            {
-                product.ProductName = dto.ProductName;
-            }
-
-            if (dto.Price.HasValue)
-            {
-                product.Price = dto.Price.Value;
-            }
-
-            if (dto.StockLevel.HasValue)
-            {
-                product.StockLevel = dto.StockLevel.Value;
-            }
 
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException ex)
-                when (IsUniqueConstraintViolation(ex))
-            {
-                return Conflict(new
+                var updated = await _productService.PatchAsync(id, dto);
+
+                if (!updated)
                 {
-                    message = "A product with this name already exists."
-                });
+                    return Problem(
+                        detail: $"Product with ID {id} was not found.",
+                        statusCode: StatusCodes.Status404NotFound,
+                        title: "Product Not Found");
+                }
+
+                return NoContent();
             }
-
-            return NoContent();
-        }
-
-
-        // Handle database unique-constraint exceptions
-        private static bool IsUniqueConstraintViolation(DbUpdateException exception)
-        {
-            return exception.InnerException is SqliteException sqliteException
-                && sqliteException.SqliteExtendedErrorCode == 2067;
+            catch (DuplicateProductNameException ex)
+            {
+                return Problem(
+                    detail: ex.Message,
+                    statusCode: StatusCodes.Status409Conflict,
+                    title: "Duplicate Product Name"
+                    );
+            }
         }
 
     }

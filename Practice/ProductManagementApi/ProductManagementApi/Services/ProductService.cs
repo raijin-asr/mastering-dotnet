@@ -2,8 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using ProductManagementApi.Data;
 using ProductManagementApi.DTOs;
-using ProductManagementApi.Models;
 using ProductManagementApi.Exceptions;
+using ProductManagementApi.Models;
 
 namespace ProductManagementApi.Services;
 
@@ -29,7 +29,7 @@ public class ProductService : IProductService
         };
     }
 
-    //IMPLEMENTATION----------------
+    #region HTTP methods
     public async Task<ProductListResponseDto> GetAllAsync(
     string? search, string? sortBy, bool descending, int page,
     int pageSize)
@@ -186,6 +186,64 @@ public class ProductService : IProductService
         return true;
     }
 
+    public async Task<bool> PatchAsync(int id, PatchProductDto dto)
+    {
+        var product = await _context.Products.FindAsync(id);
+        if (product is null) return false;
+        
+        if (dto.ProductName is not null)
+        {
+            var nameExists = await _context.Products
+                .AnyAsync(p =>
+                    p.Id != id &&
+                    p.ProductName.ToLower() == dto.ProductName.ToLower());
+
+            if (nameExists)
+            {
+                throw new DuplicateProductNameException();
+            }
+
+            product.ProductName = dto.ProductName;
+        }
+
+        if (dto.Price.HasValue)
+        {
+            product.Price = dto.Price.Value;
+        }
+
+        if (dto.StockLevel.HasValue)
+        {
+            product.StockLevel = dto.StockLevel.Value;
+        }
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+            when (IsUniqueConstraintViolation(ex))
+        {
+            throw new DuplicateProductNameException();
+        }
+
+         return true;
+    }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        var product = await _context.Products.FindAsync(id);
+
+        if (product is null) return false;
+
+        _context.Products.Remove(product);
+
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+
+
+    #endregion
 
     // Handle database unique-constraint exceptions
     private static bool IsUniqueConstraintViolation(DbUpdateException exception)
