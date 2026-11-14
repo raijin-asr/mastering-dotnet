@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProductManagementApi.Data;
+using ProductManagementApi.Models;
 using ProductManagementApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +25,15 @@ builder.Services.AddSwaggerGen(options => //Generates an OpenAPI description of 
         Description = "A RESTful API for managing products. Developed by Ameer (aka Raijin)."
     });
 });
+
+//register Identity Services
+builder.Services
+    .AddIdentityCore<ApplicationUser>(options => //Core user mgmt service
+    {
+        options.User.RequireUniqueEmail = true; //prevents multiple acconts using same email
+    })
+    .AddEntityFrameworkStores<AppDbContext>() //tells identity to use exisiting EF core database context
+    .AddDefaultTokenProviders(); //registers token providers for operation such as password reset and email confirmation.
 
 //standard format for communicating API errors.
 //Register built-in exception handling Service
