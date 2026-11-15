@@ -1,8 +1,8 @@
-﻿# Product Management API
+# Product Management API
 
-A RESTful Web API built with **ASP.NET Core 8**, **Entity Framework Core**, and **SQLite** to perform CRUD (Create, Read, Update, Delete) operations on products (also Sort, Search and Pagination).
+A RESTful Web API built with **ASP.NET Core 8**, **Entity Framework Core 8**, and **SQLite** for managing products. The API supports CRUD operations, search, sorting, pagination, partial updates, request validation, and structured error handling.
 
-This project is part of my .NET learning journey, following my ASP.NET Core MVC practice project. The goal is to understand Web API development, RESTful endpoints, database integration, and HTTP status codes.
+This project is part of my .NET learning journey, following my ASP.NET Core MVC practice project. It focuses on understanding RESTful API development, clean separation of responsibilities, database integration, authentication, and HTTP status codes.
 
 ## Tech Stack
 
@@ -10,47 +10,99 @@ This project is part of my .NET learning journey, following my ASP.NET Core MVC 
 - **ASP.NET Core Web API (.NET 8)**
 - **Entity Framework Core 8**
 - **SQLite**
+- **ASP.NET Core Identity**
+- **JWT Bearer Authentication** (implementation in progress)
 - **Swagger / OpenAPI**
+- **Dependency Injection**
 - **Visual Studio**
 
 ## Features
 
+### Product Management
 - Retrieve all products
 - Retrieve a product by ID
 - Create a new product
-- Update an existing product
-- Partial Update 
+- Update an existing product using PUT
+- Partially update a product using PATCH
 - Delete a product
-- Database integration using EF Core and SQLite
+- Search products by name
+- Sort products by supported fields
+- Pagination with configurable page size
+
+### Architecture and Data Management
+- Service layer using `IProductService` and `ProductService`
+- Dependency injection for application services
+- DTOs (Data Transfer Objects) for request and response models
+- EF Core with SQLite database integration
 - Database schema management using EF Core migrations
-- Interactive API testing with Swagger
 - Asynchronous database operations
 
-## ScreenShots
-<img width="1342" height="977" alt="image" src="https://github.com/user-attachments/assets/10fd1346-4843-4d12-841a-f95feb1cd3af" />
+### Validation and Error Handling
+- Request validation using Data Annotations
+- Automatic model validation through `[ApiController]`
+- Business validation for duplicate product names
+- Case-insensitive unique product names
+- Global exception handling
+- Consistent error responses using Problem Details
+- Logging using `ILogger`
 
-Fig 1: All HTTP method of Products
+### Authentication (In Progress)
+- ASP.NET Core Identity integration
+- User registration
+- Password hashing and verification through Identity
+- JWT configuration and token generation
+- JWT-based authentication for protected endpoints (next implementation step)
+
+## Screenshots
+
+### Product Endpoints
+
+<img width="930" height="942" alt="image" src="https://github.com/user-attachments/assets/948b9862-9eef-4bd4-a219-49f752c329ff" />
+
+*Figure 1: Product API HTTP methods in Swagger.*
+
+### Search, Sorting and Pagination
 
 <img width="1167" height="977" alt="image" src="https://github.com/user-attachments/assets/605493a9-8eba-4aed-8f77-cd92e8d6aeae" />
-Fig 2: Search, Sorting and Pagination in GET method
+
+*Figure 2: Search, sorting and pagination through GET query parameters.*
 
 ## Project Structure
 
 ```text
 ProductManagementApi/
 ├── Controllers/
+│   ├── AuthController.cs
 │   └── ProductsController.cs
 ├── Data/
 │   └── AppDbContext.cs
+├── DTOs/
+│   ├── Auth/
+│   │   ├── LoginDto.cs
+│   │   └── RegisterDto.cs
+│   └── Products/
+│       ├── CreateProductDto.cs
+│       ├── UpdateProductDto.cs
+│       ├── PatchProductDto.cs
+│       ├── ProductResponseDto.cs
+│       └── ProductListResponseDto.cs
+├── Exceptions/
+│   └── DuplicateProductNameException.cs
 ├── Migrations/
 ├── Models/
+│   ├── ApplicationUser.cs
 │   └── Product.cs
+├── Services/
+│   ├── IProductService.cs
+│   └── ProductService.cs
 ├── Properties/
 ├── appsettings.json
 ├── Program.cs
 ├── ProductManagementApi.csproj
 └── README.md
 ```
+
+*The structure may evolve as additional features are implemented.*
 
 ## Getting Started
 
@@ -94,7 +146,37 @@ The project uses SQLite. The connection string in `appsettings.json` is:
 }
 ```
 
-### 4. Apply database migrations
+### 4. Configure JWT secrets
+
+JWT signing keys should not be committed to source control.
+
+Initialize .NET User Secrets:
+
+```bash
+dotnet user-secrets init
+```
+
+Set the JWT signing key using a securely generated Base64-encoded key:
+
+```bash
+dotnet user-secrets set "Jwt:Key" "<your-generated-secret-key>"
+```
+
+The non-sensitive JWT settings can be configured in `appsettings.json`:
+
+```json
+{
+  "Jwt": {
+    "Issuer": "ProductManagementApi",
+    "Audience": "ProductManagementApiClient",
+    "ExpiresInMinutes": 60
+  }
+}
+```
+
+Do not publish your actual signing key.
+
+### 5. Apply database migrations
 
 If the database has not been created yet, run:
 
@@ -102,7 +184,7 @@ If the database has not been created yet, run:
 dotnet ef database update
 ```
 
-The migration files are included in the project to create the database schema.
+The migration files are included in the project to create the database schema, including the product and Identity tables.
 
 If needed, install the EF Core command-line tool:
 
@@ -110,7 +192,7 @@ If needed, install the EF Core command-line tool:
 dotnet tool install --global dotnet-ef --version 8.0.8
 ```
 
-### 5. Run the application
+### 6. Run the application
 
 ```bash
 dotnet run
@@ -120,45 +202,49 @@ Open the Swagger URL shown in the terminal. In Development mode, Swagger provide
 
 ## API Endpoints
 
+### Product Endpoints
+
 The base route is `/api/products`.
 
 | HTTP Method | Endpoint | Description | Success Response |
 |---|---|---|---|
-| GET | `/api/products` | Retrieve all products | `200 OK` |
+| GET | `/api/products` | Retrieve products with search, sorting and pagination | `200 OK` |
 | GET | `/api/products/{id}` | Retrieve a product by ID | `200 OK` |
 | POST | `/api/products` | Create a product | `201 Created` |
 | PUT | `/api/products/{id}` | Update a product | `204 No Content` |
-| PATCH | `/api/products/{id}` | Partial Update a product | `204 No Content` |
+| PATCH | `/api/products/{id}` | Partially update a product | `204 No Content` |
 | DELETE | `/api/products/{id}` | Delete a product | `204 No Content` |
 
-The API returns `404 Not Found` when a requested product does not exist.
+The API also uses:
+- `400 Bad Request` for invalid request data.
+- `404 Not Found` when a requested product does not exist.
+- `409 Conflict` when a product name already exists.
+- `500 Internal Server Error` for unexpected server errors.
+
+### Authentication Endpoints
+
+The authentication base route is `/api/auth`.
+
+| HTTP Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/register` | Register a new user |
+| POST | `/api/auth/login` | Authenticate a user and return a JWT (implementation in progress) |
 
 ## Example Requests
 
 ### Get all products
 
 ```http
-GET /api/products
+GET /api/products?page=1&pageSize=5&sortBy=price&descending=false
 ```
 
-Example response:
+Optional query parameters include:
 
-```json
-[
-  {
-    "id": 1,
-    "productName": "Mobile",
-    "price": 19,
-    "stockLevel": 10
-  },
-  {
-    "id": 2,
-    "productName": "Charger",
-    "price": 5,
-    "stockLevel": 20
-  }
-]
-```
+- `search`: Filter products by name.
+- `sortBy`: Select a supported sorting field.
+- `descending`: Choose descending or ascending order.
+- `page`: Page number.
+- `pageSize`: Number of products per page.
 
 ### Create a product
 
@@ -181,6 +267,8 @@ A successful request returns `201 Created` with the created product and a URL fo
 
 ### Update a product
 
+PUT replaces the product's editable fields with the submitted values.
+
 ```http
 PUT /api/products/1
 Content-Type: application/json
@@ -190,7 +278,6 @@ Request body:
 
 ```json
 {
-  "id": 1,
   "productName": "Updated Mobile",
   "price": 250,
   "stockLevel": 20
@@ -198,6 +285,25 @@ Request body:
 ```
 
 A successful update returns `204 No Content`.
+
+### Partially update a product
+
+PATCH updates only the fields provided in the request.
+
+```http
+PATCH /api/products/1
+Content-Type: application/json
+```
+
+Request body:
+
+```json
+{
+  "price": 275
+}
+```
+
+A successful partial update returns `204 No Content`.
 
 ### Delete a product
 
@@ -207,40 +313,65 @@ DELETE /api/products/1
 
 A successful deletion returns `204 No Content`.
 
+### Register a user
+
+```http
+POST /api/auth/register
+Content-Type: application/json
+```
+
+Request body:
+
+```json
+{
+  "email": "test@example.com",
+  "password": "MyPassword123"
+}
+```
+
+A successful registration returns `201 Created`.
+
 ## Database
 
 The project uses **Entity Framework Core with SQLite**.
 
 - `Product.cs` defines the product entity.
-- `AppDbContext.cs` manages database access.
+- `ApplicationUser.cs` extends ASP.NET Core Identity's user model.
+- `AppDbContext.cs` derives from `IdentityDbContext<ApplicationUser>`.
 - The `Products` table stores product information.
+- Identity manages user-related tables, including `AspNetUsers`.
+- A unique database index enforces case-insensitive product name uniqueness.
 - EF Core migrations track and apply database schema changes.
 - `SaveChangesAsync()` persists create, update, and delete operations.
 
-The SQLite database file is generated locally and should generally not be committed to Git. The migration files should be committed so the database schema can be recreated.
+The SQLite database file is generated locally and should generally not be committed to Git. Migration files should be committed so the database schema can be recreated.
 
 ## Learning Objectives
 
 This project helps me practice:
 
-- Understanding RESTful API design
-- Working with HTTP methods and status codes
-- Creating controller-based API endpoints
-- Using dependency injection
+- Understanding RESTful API design and HTTP methods
+- Working with HTTP status codes
+- Building controller-based Web APIs
+- Separating business logic from controllers using a service layer
+- Understanding dependency injection
+- Using DTOs to define API request and response contracts
 - Integrating EF Core with SQLite
 - Implementing asynchronous database operations
 - Managing database migrations
+- Implementing validation and exception handling
+- Understanding authentication and authorization with ASP.NET Core Identity and JWT
 - Testing APIs using Swagger
 
 ## Future Improvements
 
-- Implement DTOs (Data Transfer Objects)
-- Add request validation and improved error handling
-- Improve API response consistency
-- Add filtering, searching, sorting, and pagination
-- Implement authentication and authorization
-- Add unit and integration tests
-- Explore API versioning and production configuration
+- Complete JWT login and token generation
+- Protect endpoints using `[Authorize]`
+- Implement role-based authorization and claims
+- Add unit tests using xUnit and Moq
+- Add API integration tests
+- Improve logging and production configuration
+- Explore API versioning and EF Core performance improvements
 
 ## Author
 
