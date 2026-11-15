@@ -1,9 +1,12 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using ProductManagementApi.Data;
 using ProductManagementApi.Models;
 using ProductManagementApi.Services;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +38,10 @@ builder.Services
     .AddEntityFrameworkStores<AppDbContext>() //tells identity to use exisiting EF core database context
     .AddDefaultTokenProviders(); //registers token providers for operation such as password reset and email confirmation.
 
+// Register Data Protection services
+builder.Services.AddDataProtection();
+
+
 //standard format for communicating API errors.
 //Register built-in exception handling Service
 builder.Services.AddProblemDetails();
@@ -58,6 +65,34 @@ builder.Services.Configure<ApiBehaviorOptions>(options => // ApiBehavior Control
 //Register service with DI
 builder.Services.AddScoped<IProductService, ProductService>();
 
+//JWT
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new InvalidOperationException("JWT Key is missing.");
+
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtKey)),
+
+            ValidateIssuer = true,
+            ValidIssuer = jwtIssuer,
+
+            ValidateAudience = true,
+            ValidAudience = jwtAudience,
+
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(1)
+        };
+    });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -73,6 +108,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection(); //Redirects eligible HTTP requests to HTTPS
 
+app.UseAuthentication(); // this first before authorization becuase it reads the bearer token and tries to identify the user.
 app.UseAuthorization(); //Adds authorization middleware to the request pipeline. Authorization determines whether a user is allowed to access a protected resource.
 
 app.MapControllers(); //It maps the routes defined by your controller attributes to endpoints that ASP.NET Core can execute.
