@@ -9,6 +9,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace ProductManagementApi.Controllers
 {
@@ -29,7 +31,7 @@ namespace ProductManagementApi.Controllers
             _configuration = configuration;
         }
 
-        [HttpPost("register")]
+        [HttpPost("Register")]
         public async Task<IActionResult> Register(RegisterDto dto)
         {
             var exisitingUser = await _userManager.FindByEmailAsync(dto.Email);
@@ -99,7 +101,7 @@ namespace ProductManagementApi.Controllers
             // 4. Create claims describing the authenticated user
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.NameIdentifier, user.Id), // user ID is added to JWT to later use it without Query
                 new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
@@ -132,6 +134,20 @@ namespace ProductManagementApi.Controllers
                 token = tokenString,
                 expiration = expires,
                 email = user.Email
+            });
+        }
+
+        [Authorize]
+        [HttpGet("me")]
+        public IActionResult GetCurrentUser()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var email = User.FindFirstValue(ClaimTypes.Email);
+
+            return Ok(new
+            {
+                userId,
+                email
             });
         }
     }

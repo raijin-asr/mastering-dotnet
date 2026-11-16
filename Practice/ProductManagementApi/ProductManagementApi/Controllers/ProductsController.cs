@@ -2,9 +2,11 @@
 using ProductManagementApi.DTOs;
 using ProductManagementApi.Exceptions;
 using ProductManagementApi.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ProductManagementApi.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ProductsController : ControllerBase

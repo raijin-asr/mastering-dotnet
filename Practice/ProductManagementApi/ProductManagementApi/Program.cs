@@ -8,6 +8,7 @@ using ProductManagementApi.Models;
 using ProductManagementApi.Services;
 using System.Text;
 
+# region Services
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container used without the MVC view-rendering features.
@@ -27,6 +28,33 @@ builder.Services.AddSwaggerGen(options => //Generates an OpenAPI description of 
         Version = "v1",
         Description = "A RESTful API for managing products. Developed by Ameer (aka Raijin)."
     });
+
+    // Define JWT Bearer authentication to tell Swagger API supports Bearer JWT authentication
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Enter your JWT token."
+    });
+
+    // Apply Bearer authentication requirement (tells Swagger to apply security scheme to API operations)
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
 
 //register Identity Services
@@ -35,6 +63,7 @@ builder.Services
     {
         options.User.RequireUniqueEmail = true; //prevents multiple acconts using same email
     })
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>() //tells identity to use exisiting EF core database context
     .AddDefaultTokenProviders(); //registers token providers for operation such as password reset and email confirmation.
 
@@ -95,7 +124,38 @@ builder.Services
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+//Create roles automatically when app starts
+using (var scope = app.Services.CreateScope()) //CreateScope creates DI scope so we can resolve scoped services safely during application startup.
+{
+    var roleManager = scope.ServiceProvider
+        .GetRequiredService<RoleManager<IdentityRole>>(); //retreives Identity's role management service
+
+    string[] roles = { "Admin", "Customer" };
+
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            var result = await roleManager.CreateAsync(
+                new IdentityRole(role));
+
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(
+                    "; ",
+                    result.Errors.Select(e => e.Description));
+
+                throw new InvalidOperationException(
+                    $"Failed to create role {role}: {errors}");
+            }
+        }
+    }
+}
+
+#endregion
+
+
+# region Configure the HTTP request pipeline.
 
 //Register middlware to catch unhandled exceptions and generates an HTTP 500 response using Problem Details when possible.
 app.UseExceptionHandler();
@@ -114,3 +174,5 @@ app.UseAuthorization(); //Adds authorization middleware to the request pipeline.
 app.MapControllers(); //It maps the routes defined by your controller attributes to endpoints that ASP.NET Core can execute.
 
 app.Run(); //Starts the application. The server begins listening on the configured addresses and processing requests.
+
+#endregion
