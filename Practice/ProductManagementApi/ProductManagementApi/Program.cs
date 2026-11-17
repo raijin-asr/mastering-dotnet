@@ -150,6 +150,42 @@ using (var scope = app.Services.CreateScope()) //CreateScope creates DI scope so
             }
         }
     }
+
+    //it runs in Development, finds existing user by email, checks if that user has Admin role or assign it if needed
+    if (app.Environment.IsDevelopment())
+    {
+        var adminEmail = app.Configuration["SeedAdmin:Email"];
+
+        if (!string.IsNullOrWhiteSpace(adminEmail))
+        {
+            var userManager = scope.ServiceProvider
+                .GetRequiredService<UserManager<ApplicationUser>>();
+
+            var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
+            if (adminUser == null)
+            {
+                throw new InvalidOperationException(
+                    $"Admin user '{adminEmail}' was not found.");
+            }
+
+            if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
+            {
+                var result = await userManager.AddToRoleAsync(
+                    adminUser, "Admin");
+
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join(
+                        "; ",
+                        result.Errors.Select(e => e.Description));
+
+                    throw new InvalidOperationException(
+                        $"Failed to assign Admin role: {errors}");
+                }
+            }
+        }
+    }
 }
 
 #endregion

@@ -66,6 +66,7 @@ namespace ProductManagementApi.Controllers
             return Ok(_productService.ToResponseDto(product));
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]  //api/products
         public async Task<ActionResult<ProductResponseDto>> Create(CreateProductDto dto)
         {
@@ -90,6 +91,7 @@ namespace ProductManagementApi.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(
             int id,
@@ -121,6 +123,7 @@ namespace ProductManagementApi.Controllers
                 
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -141,6 +144,7 @@ namespace ProductManagementApi.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPatch("{id:int}")]
         public async Task<IActionResult> Patch(int id, PatchProductDto dto)
         {

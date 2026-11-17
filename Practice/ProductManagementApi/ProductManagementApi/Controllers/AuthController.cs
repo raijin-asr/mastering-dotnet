@@ -59,6 +59,18 @@ namespace ProductManagementApi.Controllers
                 });
             }
 
+            //Prevents everyone being Admin, Now every successfully registered user gets the Customer role automatically.
+            var roleResult = await _userManager.AddToRoleAsync(
+                    user, "Customer");
+
+            if (!roleResult.Succeeded)
+            {
+                return StatusCode(500, new
+                {
+                    message = "User was created, but assigning the Customer role failed."
+                });
+            }
+
             return StatusCode(201, new
             {
                 message = "User registered successfully."
@@ -98,15 +110,23 @@ namespace ProductManagementApi.Controllers
             var expirationMinutes =
                 _configuration.GetValue<int>("Jwt:ExpiresInMinutes", 60);
 
-            // 4. Create claims describing the authenticated user
-            var claims = new[]
+            //4. Get all roles assigned to logged-in users
+            var roles = await _userManager.GetRolesAsync(user);
+
+            // 5. Create claims describing the authenticated user
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id), // user ID is added to JWT to later use it without Query
                 new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
-            // 5. Create signing credentials using our secret key
+            //Add roles to Claim
+            claims.AddRange(
+                roles.Select(role => new Claim(ClaimTypes.Role, role))
+                );
+
+            // 6. Create signing credentials using our secret key
             var securityKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(jwtKey));
 
@@ -138,7 +158,7 @@ namespace ProductManagementApi.Controllers
         }
 
         [Authorize]
-        [HttpGet("me")]
+        [HttpGet("LoggedInUser")]
         public IActionResult GetCurrentUser()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
