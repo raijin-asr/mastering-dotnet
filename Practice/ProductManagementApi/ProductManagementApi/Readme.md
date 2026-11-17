@@ -46,7 +46,7 @@ This project is part of my .NET learning journey, following my ASP.NET Core MVC 
 - Consistent error responses using Problem Details
 - Logging using `ILogger`
 
-### Authentication (In Progress)
+### Authentication
 - ASP.NET Core Identity integration
 - User registration
 - Password hashing and verification through Identity
@@ -57,15 +57,23 @@ This project is part of my .NET learning journey, following my ASP.NET Core MVC 
 
 ### Product Endpoints
 
-<img width="930" height="942" alt="image" src="https://github.com/user-attachments/assets/948b9862-9eef-4bd4-a219-49f752c329ff" />
+<img width="1170" height="986" alt="image" src="https://github.com/user-attachments/assets/c0c574a5-ce63-4f8a-aaff-3527607bf058" />
 
 *Figure 1: Product API HTTP methods in Swagger.*
+
+### Login Endpoints with JWT Token Generated
+<img width="1022" height="922" alt="image" src="https://github.com/user-attachments/assets/02be43cd-f7bc-4584-8adb-0c19f1046967" />
+*Figure 2: Login Endpoints with JWT Token Generated*
+
+### Authorize attribute to access protected endpoints
+<img width="1102" height="932" alt="image" src="https://github.com/user-attachments/assets/0b8bb905-5130-4dcd-81ea-4ca374ba115a" />
+*Figure 3: Logged in using Authorize button to access protected endpoints.*
 
 ### Search, Sorting and Pagination
 
 <img width="1167" height="977" alt="image" src="https://github.com/user-attachments/assets/605493a9-8eba-4aed-8f77-cd92e8d6aeae" />
 
-*Figure 2: Search, sorting and pagination through GET query parameters.*
+*Figure 4: Search, sorting and pagination through GET query parameters.*
 
 ## Project Structure
 
@@ -362,12 +370,12 @@ This project helps me practice:
 - Implementing validation and exception handling
 - Understanding authentication and authorization with ASP.NET Core Identity and JWT
 - Testing APIs using Swagger
-
-## Future Improvements
-
 - Complete JWT login and token generation
 - Protect endpoints using `[Authorize]`
 - Implement role-based authorization and claims
+  
+## Future Improvements
+
 - Add unit tests using xUnit and Moq
 - Add API integration tests
 - Improve logging and production configuration
