@@ -91,7 +91,7 @@ namespace ProductManagementApi.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = "CanManagePrices")]  //Policy to Update price by Admin
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(
             int id,
@@ -123,7 +123,7 @@ namespace ProductManagementApi.Controllers
                 
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = "RequireAdmin")] //Apply Authorization Policy
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

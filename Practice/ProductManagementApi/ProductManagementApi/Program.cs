@@ -122,6 +122,23 @@ builder.Services
         };
     });
 
+//Authorization Policy (here centrally defined without putting logic inside controller actions)
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireAdmin", policy =>
+        policy.RequireRole("Admin"));  //here role defined with dedicated method provided by ASP.NET core but its also claim, so can use RequireClaim method too
+
+    options.AddPolicy("VerifiedAdmin", policy =>
+    {
+        policy.RequireRole("Admin");
+        policy.RequireClaim("EmailVerified", "true"); //here RequiredClaim used for other attributes of claim
+    });
+
+    options.AddPolicy("CanManagePrices", policy => //it does not care whether user is admin or not
+        policy.RequireClaim("Permission", "ManagePrices")); //here claim used
+    
+});
+
 var app = builder.Build();
 
 //Create roles automatically when app starts

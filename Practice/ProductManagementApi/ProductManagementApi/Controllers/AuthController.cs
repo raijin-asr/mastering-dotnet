@@ -10,7 +10,6 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 
 namespace ProductManagementApi.Controllers
 {
@@ -125,6 +124,14 @@ namespace ProductManagementApi.Controllers
             claims.AddRange(
                 roles.Select(role => new Claim(ClaimTypes.Role, role))
                 );
+
+            //Add Permision ManagePrices for Policy here
+            if (roles.Contains("Admin"))
+            {
+                claims.Add(
+                    new Claim("Permission", "ManagePrices")
+                    );
+            }
 
             // 6. Create signing credentials using our secret key
             var securityKey = new SymmetricSecurityKey(
