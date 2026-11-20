@@ -5,7 +5,7 @@ public class UnitTest1
     [Fact]  //tells xUnit that this method is a test to be discovered and executed.
     public void Add_TwoNumbers_ReturnsCorrectResult()
     {
-        //Implement AAA Patter
+        //Implement AAA Pattern
         //Arrange (Prepare objects and data needed for test)
         var calculator = new Calculator();
 
