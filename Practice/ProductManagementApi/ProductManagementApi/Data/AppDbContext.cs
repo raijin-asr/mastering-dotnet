@@ -21,7 +21,7 @@ namespace ProductManagementApi.Data
             base.OnModelCreating(modelBuilder);  //Identity has its own database configuration.
 
             modelBuilder.Entity<Product>()
-                .Property(p => p.ProductName)
+                .Property(p => p.ProductName) //database level constraint duplicate test as final protection even it bypassed service level duplicate checks
                 .UseCollation("NOCASE");  //makes SQLite compare product names without distinguishing ASCII letter case.
 
             modelBuilder.Entity<Product>()
