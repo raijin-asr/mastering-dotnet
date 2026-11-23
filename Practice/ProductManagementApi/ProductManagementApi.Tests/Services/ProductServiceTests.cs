@@ -13,6 +13,8 @@ namespace ProductManagementApi.Tests.Services;
 
 public class ProductServiceTests
 {
+
+    #region GET
     [Fact]
     public async Task GetByIdAsync_WhenProductExists_ReturnsProduct()
     {
@@ -68,6 +70,10 @@ public class ProductServiceTests
         // Assert
         Assert.Null(result);
     }
+
+    #endregion
+
+    #region POST
 
     [Fact]
     public async Task CreateAsync_WhenProductIsValid_CreatesProduct()
@@ -180,4 +186,112 @@ public class ProductServiceTests
         Assert.Equal(2067, sqliteException.SqliteExtendedErrorCode);  //check 2067 represents a unique contraint violation
     }
 
+    #endregion
+
+    #region PUT
+
+    [Fact]
+    public async Task UpdateAsync_WhenProductExists_UpdatesProduct()
+    {
+        // Arrange
+        using var database = new TestDatabase();
+
+        var logger = new Mock<ILogger<ProductService>>();
+        var service = new ProductService(database.Context, logger.Object);
+
+        var product = new Product
+        {
+            ProductName = "Mobile",
+            Price = 500,
+            StockLevel = 10
+        };
+
+        database.Context.Products.Add(product); //first save original product to test update
+        await database.Context.SaveChangesAsync();
+
+        var dto = new UpdateProductDto
+        {
+            ProductName = "Smartphone",
+            Price = 700,
+            StockLevel = 15
+        };
+
+        // Act
+        var result = await service.UpdateAsync(product.Id, dto);
+
+        // Assert
+        Assert.True(result);
+
+        //checking product is actually updated
+        var updatedProduct = await database.Context.Products
+            .FirstOrDefaultAsync(p => p.Id == product.Id);
+
+        Assert.NotNull(updatedProduct);
+        Assert.Equal("Smartphone", updatedProduct.ProductName);
+        Assert.Equal(700, updatedProduct.Price);
+        Assert.Equal(15, updatedProduct.StockLevel);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WhenProductDoesNotExist_ReturnsFalse()
+    {
+        // Arrange
+        using var database = new TestDatabase();
+
+        var logger = new Mock<ILogger<ProductService>>();
+        var service = new ProductService(database.Context, logger.Object);
+
+        var dto = new UpdateProductDto
+        {
+            ProductName = "Laptop",
+            Price = 1200,
+            StockLevel = 5
+        };
+
+        // Act
+        var result = await service.UpdateAsync(999, dto);
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WhenProductNameAlreadyExists_ThrowsDuplicateException()
+    {
+        // Arrange
+        using var database = new TestDatabase();
+
+        var logger = new Mock<ILogger<ProductService>>();
+        var service = new ProductService(database.Context, logger.Object);
+
+        var product1 = new Product
+        {
+            ProductName = "Mobile",
+            Price = 500,
+            StockLevel = 10
+        };
+
+        var product2 = new Product
+        {
+            ProductName = "Laptop",
+            Price = 1200,
+            StockLevel = 5
+        };
+
+        database.Context.Products.AddRange(product1, product2);
+        await database.Context.SaveChangesAsync();
+
+        var dto = new UpdateProductDto  //updating product with duplicate name
+        {
+            ProductName = "mobile",
+            Price = 1300,
+            StockLevel = 8
+        };
+
+        // Act & Assert
+        await Assert.ThrowsAsync<DuplicateProductNameException>(
+            () => service.UpdateAsync(product2.Id, dto));
+    }
+
+    #endregion
 }
