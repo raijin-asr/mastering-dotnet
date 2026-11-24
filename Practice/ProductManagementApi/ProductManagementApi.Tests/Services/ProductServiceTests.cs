@@ -15,6 +15,8 @@ public class ProductServiceTests
 {
 
     #region GET
+    
+    #region GetByID
     [Fact]
     public async Task GetByIdAsync_WhenProductExists_ReturnsProduct()
     {
@@ -70,6 +72,9 @@ public class ProductServiceTests
         // Assert
         Assert.Null(result);
     }
+
+    #endregion
+
 
     #endregion
 
@@ -291,6 +296,158 @@ public class ProductServiceTests
         // Act & Assert
         await Assert.ThrowsAsync<DuplicateProductNameException>(
             () => service.UpdateAsync(product2.Id, dto));
+    }
+
+    #endregion
+
+    #region PATCH
+
+    [Fact]
+    public async Task PatchAsync_WhenOnlyPriceIsProvided_UpdatesOnlyPrice()
+    {
+        // Arrange
+        using var database = new TestDatabase();
+
+        var logger = new Mock<ILogger<ProductService>>();
+        var service = new ProductService(database.Context, logger.Object);
+
+        var product = new Product
+        {
+            ProductName = "Mobile",
+            Price = 500,
+            StockLevel = 10
+        };
+
+        database.Context.Products.Add(product);
+        await database.Context.SaveChangesAsync();
+
+        var dto = new PatchProductDto
+        {
+            Price = 700
+        };
+
+        // Act
+        var result = await service.PatchAsync(product.Id, dto);
+
+        // Assert
+        Assert.True(result);
+
+        var updatedProduct = await database.Context.Products
+            .FirstOrDefaultAsync(p => p.Id == product.Id);
+
+        Assert.NotNull(updatedProduct);
+
+        Assert.Equal("Mobile", updatedProduct.ProductName);
+        Assert.Equal(700, updatedProduct.Price);
+        Assert.Equal(10, updatedProduct.StockLevel);
+    }
+
+    [Fact]
+    public async Task PatchAsync_WhenProductDoesNotExist_ReturnsFalse()
+    {
+        // Arrange
+        using var database = new TestDatabase();
+
+        var logger = new Mock<ILogger<ProductService>>();
+        var service = new ProductService(database.Context, logger.Object);
+
+        var dto = new PatchProductDto
+        {
+            Price = 700
+        };
+
+        // Act
+        var result = await service.PatchAsync(999, dto);
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task PatchAsync_WhenProductNameAlreadyExists_ThrowsDuplicateException()
+    {
+        // Arrange
+        using var database = new TestDatabase();
+
+        var logger = new Mock<ILogger<ProductService>>();
+        var service = new ProductService(database.Context, logger.Object);
+
+        var product1 = new Product
+        {
+            ProductName = "Mobile",
+            Price = 500,
+            StockLevel = 10
+        };
+
+        var product2 = new Product
+        {
+            ProductName = "Laptop",
+            Price = 1200,
+            StockLevel = 5
+        };
+
+        database.Context.Products.AddRange(product1, product2);
+        await database.Context.SaveChangesAsync();
+
+        var dto = new PatchProductDto
+        {
+            ProductName = "mobile"
+        };
+
+        // Act & Assert
+        await Assert.ThrowsAsync<DuplicateProductNameException>(
+            () => service.PatchAsync(product2.Id, dto));
+    }
+
+    #endregion
+
+    #region DELETE
+
+    [Fact]
+    public async Task DeleteAsync_WhenProductExists_DeletesProduct()
+    {
+        // Arrange
+        using var database = new TestDatabase();
+
+        var logger = new Mock<ILogger<ProductService>>();
+        var service = new ProductService(database.Context, logger.Object);
+
+        var product = new Product
+        {
+            ProductName = "Mobile",
+            Price = 500,
+            StockLevel = 10
+        };
+
+        database.Context.Products.Add(product);
+        await database.Context.SaveChangesAsync();
+
+        // Act
+        var result = await service.DeleteAsync(product.Id);
+
+        // Assert
+        Assert.True(result);
+
+        var deletedProduct = await database.Context.Products
+            .FirstOrDefaultAsync(p => p.Id == product.Id);
+
+        Assert.Null(deletedProduct);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WhenProductDoesNotExist_ReturnsFalse()
+    {
+        // Arrange
+        using var database = new TestDatabase();
+
+        var logger = new Mock<ILogger<ProductService>>();
+        var service = new ProductService(database.Context, logger.Object);
+
+        // Act
+        var result = await service.DeleteAsync(999);
+
+        // Assert
+        Assert.False(result);
     }
 
     #endregion
