@@ -75,6 +75,363 @@ public class ProductServiceTests
 
     #endregion
 
+    #region GetAll
+    //Test 1: Return all Products
+    [Fact]
+    public async Task GetAllAsync_WhenProductsExist_ReturnsAllProducts()
+    {
+        // Arrange
+        using var database = new TestDatabase();
+
+        var logger = new Mock<ILogger<ProductService>>();
+        var service = new ProductService(database.Context, logger.Object);
+
+        var products = new List<Product>
+        {
+            new Product
+            {
+                ProductName = "Mobile",
+                Price = 500,
+                StockLevel = 10
+            },
+            new Product
+            {
+                ProductName = "Laptop",
+                Price = 1200,
+                StockLevel = 5
+            },
+            new Product
+            {
+                ProductName = "Charger",
+                Price = 100,
+                StockLevel = 20
+            }
+        };
+
+        database.Context.Products.AddRange(products);
+        await database.Context.SaveChangesAsync();
+
+        // Act
+        var result = await service.GetAllAsync(
+            null, null, false, 1, 10);
+
+        // Assert
+        Assert.Equal(3, result.TotalCount);
+        Assert.Equal(3, result.Items.Count);
+        Assert.Equal(1, result.Page);
+        Assert.Equal(10, result.PageSize);
+    }
+
+    //Test2: Search products by name (SEARCH)
+    [Fact]
+    public async Task GetAllAsync_WhenSearchIsProvided_ReturnsMatchingProducts()
+    {
+        // Arrange
+        using var database = new TestDatabase();
+
+        var logger = new Mock<ILogger<ProductService>>();
+        var service = new ProductService(database.Context, logger.Object);
+
+        var products = new List<Product>
+        {
+            new Product { ProductName = "Mobile", Price = 500, StockLevel = 10 },
+            new Product { ProductName = "Laptop", Price = 1200, StockLevel = 5 },
+            new Product { ProductName = "Charger", Price = 100, StockLevel = 20 },
+            new Product { ProductName = "Mobile Cover", Price = 50, StockLevel = 15 }
+        };
+
+        database.Context.Products.AddRange(products);
+        await database.Context.SaveChangesAsync();
+
+        // Act
+        var result = await service.GetAllAsync(
+            "Mobile", null, false, 1, 10);
+
+        // Assert
+        Assert.Equal(2, result.TotalCount); //here check TotalCount for total number of matching products before applying pagination
+        Assert.Equal(2, result.Items.Count);
+
+        //This checks that every returned product contains "Mobile" in its name.
+        Assert.All(result.Items, product =>
+            Assert.Contains("Mobile", product.ProductName));
+    }
+
+    //Test3: Search without considering uppercase/lowercase (SEARCH)
+    [Fact]
+    public async Task GetAllAsync_WhenSearchIsLowercase_ReturnsMatchingProducts()
+    {
+        // Arrange
+        using var database = new TestDatabase();
+
+        var logger = new Mock<ILogger<ProductService>>();
+        var service = new ProductService(database.Context, logger.Object);
+
+        var products = new List<Product>
+        {
+            new Product { ProductName = "Mobile", Price = 500, StockLevel = 10 },
+            new Product { ProductName = "Laptop", Price = 1200, StockLevel = 5 },
+            new Product { ProductName = "Mobile Cover", Price = 50, StockLevel = 15 }
+        };
+
+        database.Context.Products.AddRange(products);
+        await database.Context.SaveChangesAsync();
+
+        // Act
+        var result = await service.GetAllAsync(
+            "mobile", null, false, 1, 10);  //here small letter m in mobile for test-insensitive searching
+
+        // Assert
+        Assert.Equal(2, result.TotalCount);
+        Assert.Equal(2, result.Items.Count);
+
+        Assert.All(result.Items, product =>
+            Assert.Contains("mobile", product.ProductName,
+                StringComparison.OrdinalIgnoreCase)); //this line ignore cases.
+    }
+
+    // Test4: SORT products by name (Ascending)
+    [Fact]
+    public async Task GetAllAsync_WhenSortingByNameAscending_ReturnsProductsInAscendingOrder()
+    {
+        // Arrange
+        using var database = new TestDatabase();
+
+        var logger = new Mock<ILogger<ProductService>>();
+        var service = new ProductService(database.Context, logger.Object);
+
+        var products = new List<Product>
+        {
+            new Product { ProductName = "Mobile", Price = 500, StockLevel = 10 },
+            new Product { ProductName = "Charger", Price = 100, StockLevel = 20 },
+            new Product { ProductName = "Laptop", Price = 1200, StockLevel = 5 }
+        };
+
+        database.Context.Products.AddRange(products);
+        await database.Context.SaveChangesAsync();
+
+        // Act
+        var result = await service.GetAllAsync(
+            null, "productname", false, 1, 10); //here false is ascending order
+
+        // Assert
+        Assert.Equal(3, result.Items.Count);
+
+        Assert.Equal("Charger", result.Items[0].ProductName);  //this is order as C comes before L and M
+        Assert.Equal("Laptop", result.Items[1].ProductName);
+        Assert.Equal("Mobile", result.Items[2].ProductName);
+    }
+
+
+    //Test5: SORT products by name (Descending)
+    [Fact]
+    public async Task GetAllAsync_WhenSortingByNameDescending_ReturnsProductsInDescendingOrder()
+    {
+        // Arrange
+        using var database = new TestDatabase();
+
+        var logger = new Mock<ILogger<ProductService>>();
+        var service = new ProductService(database.Context, logger.Object);
+
+        var products = new List<Product>
+        {
+            new Product { ProductName = "Mobile", Price = 500, StockLevel = 10 },
+            new Product { ProductName = "Charger", Price = 100, StockLevel = 20 },
+            new Product { ProductName = "Laptop", Price = 1200, StockLevel = 5 }
+        };
+
+        database.Context.Products.AddRange(products);
+        await database.Context.SaveChangesAsync();
+
+        // Act
+        var result = await service.GetAllAsync(
+            null, "productname", true, 1, 10);  //here true means descending order
+
+        // Assert
+        Assert.Equal(3, result.Items.Count);
+
+        Assert.Equal("Mobile", result.Items[0].ProductName);  //checking if M coming first
+        Assert.Equal("Laptop", result.Items[1].ProductName);
+        Assert.Equal("Charger", result.Items[2].ProductName);
+    }
+
+
+    //Test6: SORT products by price (Ascending)
+    [Fact]
+    public async Task GetAllAsync_WhenSortingByPriceAscending_ReturnsProductsInAscendingOrder()
+    {
+        // Arrange
+        using var database = new TestDatabase();
+
+        var logger = new Mock<ILogger<ProductService>>();
+        var service = new ProductService(database.Context, logger.Object);
+
+        var products = new List<Product>
+        {
+            new Product { ProductName = "Mobile", Price = 500, StockLevel = 10 },
+            new Product { ProductName = "Laptop", Price = 1200, StockLevel = 5 },
+            new Product { ProductName = "Charger", Price = 100, StockLevel = 20 }
+        };
+
+        database.Context.Products.AddRange(products);
+        await database.Context.SaveChangesAsync();
+
+        // Act
+        var result = await service.GetAllAsync(
+            null, "price", false, 1, 10);
+
+        // Assert
+        Assert.Equal(3, result.Items.Count);
+
+        Assert.Equal("Charger", result.Items[0].ProductName);
+        Assert.Equal("Mobile", result.Items[1].ProductName);
+        Assert.Equal("Laptop", result.Items[2].ProductName);
+
+        Assert.Equal(100, result.Items[0].Price);
+        Assert.Equal(500, result.Items[1].Price);
+        Assert.Equal(1200, result.Items[2].Price);
+    }
+
+
+    //Test7: SORT products by price (Descending)
+    [Fact]
+    public async Task GetAllAsync_WhenSortingByPriceDescending_ReturnsProductsInDescendingOrder()
+    {
+        // Arrange
+        using var database = new TestDatabase();
+
+        var logger = new Mock<ILogger<ProductService>>();
+        var service = new ProductService(database.Context, logger.Object);
+
+        var products = new List<Product>
+        {
+            new Product { ProductName = "Mobile", Price = 500, StockLevel = 10 },
+            new Product { ProductName = "Laptop", Price = 1200, StockLevel = 5 },
+            new Product { ProductName = "Charger", Price = 100, StockLevel = 20 }
+        };
+
+        database.Context.Products.AddRange(products);
+        await database.Context.SaveChangesAsync();
+
+        // Act
+        var result = await service.GetAllAsync(
+            null, "price", true, 1, 10);
+
+        // Assert
+        Assert.Equal(3, result.Items.Count);
+
+        Assert.Equal("Laptop", result.Items[0].ProductName);
+        Assert.Equal("Mobile", result.Items[1].ProductName);
+        Assert.Equal("Charger", result.Items[2].ProductName);
+
+        Assert.Equal(1200, result.Items[0].Price);
+        Assert.Equal(500, result.Items[1].Price);
+        Assert.Equal(100, result.Items[2].Price);
+    }
+
+    //Test8: (PAGINATION) Return the correct products for a requested page 
+    [Fact]
+    public async Task GetAllAsync_WhenSecondPageRequested_ReturnsCorrectProducts()
+    {
+        // Arrange
+        using var database = new TestDatabase();
+
+        var logger = new Mock<ILogger<ProductService>>();
+        var service = new ProductService(database.Context, logger.Object);
+
+        var products = new List<Product>
+        {
+            new Product { ProductName = "Mobile", Price = 500, StockLevel = 10 },
+            new Product { ProductName = "Laptop", Price = 1200, StockLevel = 5 },
+            new Product { ProductName = "Charger", Price = 100, StockLevel = 20 },
+            new Product { ProductName = "Keyboard", Price = 300, StockLevel = 8 },
+            new Product { ProductName = "Mouse", Price = 200, StockLevel = 12 }
+        };
+
+        database.Context.Products.AddRange(products);
+        await database.Context.SaveChangesAsync();
+
+        // Act
+        var result = await service.GetAllAsync(
+            null, null, false, 2, 2); //page 2 and 2 products per page
+
+        // Assert
+        Assert.Equal(5, result.TotalCount);
+        Assert.Equal(2, result.Page);
+        Assert.Equal(2, result.PageSize);
+        Assert.Equal(3, result.TotalPages);
+
+        Assert.Equal(2, result.Items.Count);
+        Assert.Equal("Charger", result.Items[0].ProductName);
+        Assert.Equal("Keyboard", result.Items[1].ProductName);
+    }
+
+    //Test9: (PAGINATION) Handle page 0 and page size 0 , invalid pagination values
+    [Fact]
+    public async Task GetAllAsync_WhenInvalidPaginationProvided_UsesMinimumValues()
+    {
+        // Arrange
+        using var database = new TestDatabase();
+
+        var logger = new Mock<ILogger<ProductService>>();
+        var service = new ProductService(database.Context, logger.Object);
+
+        var products = new List<Product>
+        {
+            new Product { ProductName = "Mobile", Price = 500, StockLevel = 10 },
+            new Product { ProductName = "Laptop", Price = 1200, StockLevel = 5 },
+            new Product { ProductName = "Charger", Price = 100, StockLevel = 20 }
+        };
+
+        database.Context.Products.AddRange(products);
+        await database.Context.SaveChangesAsync();
+
+        // Act
+        var result = await service.GetAllAsync(
+            null, null, false, 0, 0); //0 page, 0 Page size but Math.Clamp prevents this as it has range between 1 to 100
+
+        // Assert
+        Assert.Equal(1, result.Page);
+        Assert.Equal(1, result.PageSize);
+        Assert.Equal(3, result.TotalCount);
+        Assert.Equal(1, result.Items.Count);
+        Assert.Equal(3, result.TotalPages);
+    }
+
+    //Test10: (PAGINATION) Page size cannot exceed 100
+    [Fact]
+    public async Task GetAllAsync_WhenPageSizeExceedsMaximum_LimitsPageSizeTo100()
+    {
+        // Arrange
+        using var database = new TestDatabase();
+
+        var logger = new Mock<ILogger<ProductService>>();
+        var service = new ProductService(database.Context, logger.Object);
+
+        var products = Enumerable.Range(1, 105) //this create out of range 105 product 
+            .Select(i => new Product
+            {
+                ProductName = $"Product {i}",
+                Price = i * 10,
+                StockLevel = i
+            })
+            .ToList();
+
+        database.Context.Products.AddRange(products);
+        await database.Context.SaveChangesAsync();
+
+        // Act
+        var result = await service.GetAllAsync(
+            null, null, false, 1, 150);
+
+        // Assert
+        Assert.Equal(1, result.Page);
+        Assert.Equal(100, result.PageSize);
+        Assert.Equal(105, result.TotalCount);
+        Assert.Equal(100, result.Items.Count);
+        Assert.Equal(2, result.TotalPages);
+    }
+
+    #endregion
 
     #endregion
 

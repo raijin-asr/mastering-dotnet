@@ -40,7 +40,8 @@ public class ProductService : IProductService
         // 2. Search
         if (!string.IsNullOrWhiteSpace(search))
         {
-            query = query.Where(p => p.ProductName.Contains(search));
+            query = query.Where(p =>
+                p.ProductName.ToLower().Contains(search.ToLower()));
         }
 
         // 3. Validate pagination values
