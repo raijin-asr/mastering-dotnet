@@ -8,7 +8,10 @@ using ProductManagementApi.Models;
 using ProductManagementApi.Services;
 using System.Text;
 
-# region Services
+//Flow: 1. Register services -> 2. Build app -> 3. If Testing: create database tables -> 4. Create Admin and Customer roles
+//-> 5. If Development: optionally assign Admin to configured user -> 6. Configure middleware -> 7. Run app
+
+# region 1. Services
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container used without the MVC view-rendering features.
@@ -141,6 +144,20 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
+#region 2. Create Roles
+//Add test-environment database initialization for Integration testing
+//the test database must have its Identity tables ready before the role-seeding code tries to access them
+// Create the database schema when running integration tests.
+if (app.Environment.IsEnvironment("Testing"))
+{
+    using var testScope = app.Services.CreateScope();
+
+    var context = testScope.ServiceProvider
+        .GetRequiredService<AppDbContext>();
+
+    await context.Database.EnsureCreatedAsync();
+}
+
 //Create roles automatically when app starts
 using (var scope = app.Services.CreateScope()) //CreateScope creates DI scope so we can resolve scoped services safely during application startup.
 {
@@ -207,8 +224,10 @@ using (var scope = app.Services.CreateScope()) //CreateScope creates DI scope so
 
 #endregion
 
+#endregion
 
-# region Configure the HTTP request pipeline.
+
+# region 3.Configure the HTTP request pipeline.
 
 //Register middlware to catch unhandled exceptions and generates an HTTP 500 response using Problem Details when possible.
 app.UseExceptionHandler();
@@ -229,3 +248,6 @@ app.MapControllers(); //It maps the routes defined by your controller attributes
 app.Run(); //Starts the application. The server begins listening on the configured addresses and processing requests.
 
 #endregion
+
+//Making it public allows to test project sincecompiler auto generated Program class is not accessible to another project
+public partial class Program { } //this for Integration testing
