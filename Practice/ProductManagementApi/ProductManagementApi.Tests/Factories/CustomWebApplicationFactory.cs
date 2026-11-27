@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using ProductManagementApi.Data;
+using ProductManagementApi.Tests.Authentication;
 
 namespace ProductManagementApi.Tests.Factories
 {
@@ -64,7 +66,17 @@ namespace ProductManagementApi.Tests.Factories
                 {
                     options.UseSqlite(_connection);
                 });
-            });
+
+                //changes the default authentication scheme in the test application from JWT Bearer to our "Test" scheme.
+                services
+                    .AddAuthentication(options =>
+                    {
+                        options.DefaultAuthenticateScheme = "Test";
+                        options.DefaultChallengeScheme = "Test";
+                    })
+                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
+                        "Test", options => { });
+                            });
 
         }
 
